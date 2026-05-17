@@ -81,8 +81,11 @@ body.focus-mode .mobile-tabs { display: none !important; }
 .add-form-row { display: flex; gap: 8px; }
 .add-form input[type=text] { flex: 1; padding: 9px 12px; border-radius: 8px; border: 1.5px solid #e8e8e0; font-size: 14px; background: #fafaf8; outline: none; font-family: inherit; }
 .add-form input[type=text]:focus { border-color: #e94560; }
-.add-form input[type=date] { padding: 8px 10px; border-radius: 8px; border: 1.5px solid #e8e8e0; font-size: 13px; background: #fafaf8; outline: none; font-family: inherit; color: #555; width: 100%; }
-.add-form input[type=date]:focus { border-color: #e94560; }
+.date-row { display: flex; gap: 6px; align-items: center; }
+.date-row input[type=date] { flex: 1; padding: 8px 10px; border-radius: 8px; border: 1.5px solid #e8e8e0; font-size: 13px; background: #fafaf8; outline: none; font-family: inherit; color: #555; }
+.date-row input[type=date]:focus { border-color: #e94560; }
+.date-clear-btn { background: #f0f0eb; border: 1px solid #ddd; border-radius: 6px; color: #999; font-size: 14px; padding: 7px 9px; cursor: pointer; line-height: 1; flex-shrink: 0; }
+.date-clear-btn:hover { background: #e8e8e0; color: #555; }
 .add-btn { background: #e94560; color: #fff; border: none; border-radius: 8px; padding: 9px 14px; font-size: 18px; cursor: pointer; flex-shrink: 0; }
 .add-btn:hover { background: #c73652; }
 
@@ -218,7 +221,10 @@ body.focus-mode .mobile-tabs { display: none !important; }
           <input type="text" id="dumpInput" placeholder="Was geht dir im Kopf rum?" onkeydown="if(event.key==='Enter')addItem('dump')">
           <button class="add-btn" onclick="addItem('dump')">+</button>
         </div>
-        <input type="date" id="dumpDate" title="Optionales Datum">
+        <div class="date-row">
+          <input type="date" id="dumpDate" min="2025-01-01" max="2035-12-31" title="Optionales Datum">
+          <button class="date-clear-btn" onclick="clearDate('dumpDate','dumpQuickDates')" title="Datum loeschen">&times;</button>
+        </div>
         <div class="quick-dates" id="dumpQuickDates"></div>
       </div>
       <div id="dumpList"></div>
@@ -237,7 +243,10 @@ body.focus-mode .mobile-tabs { display: none !important; }
           <input type="text" id="weekInput" placeholder="Aufgabe diese Woche..." onkeydown="if(event.key==='Enter')addItem('week')">
           <button class="add-btn" onclick="addItem('week')">+</button>
         </div>
-        <input type="date" id="weekDate" title="Deadline">
+        <div class="date-row">
+          <input type="date" id="weekDate" min="2025-01-01" max="2035-12-31" title="Deadline">
+          <button class="date-clear-btn" onclick="clearDate('weekDate','weekQuickDates')" title="Datum loeschen">&times;</button>
+        </div>
         <div class="quick-dates" id="weekQuickDates"></div>
       </div>
       <div id="weekList"></div>
@@ -257,7 +266,10 @@ body.focus-mode .mobile-tabs { display: none !important; }
           <input type="text" id="todayInput" placeholder="Aufgabe fuer heute..." onkeydown="if(event.key==='Enter')addItem('today')">
           <button class="add-btn" onclick="addItem('today')">+</button>
         </div>
-        <input type="date" id="todayDate" title="Deadline">
+        <div class="date-row">
+          <input type="date" id="todayDate" min="2025-01-01" max="2035-12-31" title="Deadline">
+          <button class="date-clear-btn" onclick="clearDate('todayDate','todayQuickDates')" title="Datum loeschen">&times;</button>
+        </div>
         <div class="quick-dates" id="todayQuickDates"></div>
       </div>
       <div id="todayList"></div>
@@ -430,6 +442,21 @@ function initQuickDates() {
 }
 
 // ── CRUD ───────────────────────────────────────
+function isValidDate(val) {
+  if (!val) return true;
+  var parts = val.split('-');
+  if (parts.length !== 3) return false;
+  var year = parseInt(parts[0], 10);
+  return year >= 2025 && year <= 2035;
+}
+
+window.clearDate = function(dateId, qdId) {
+  var el = document.getElementById(dateId);
+  if (el) el.value = '';
+  var qd = document.getElementById(qdId);
+  if (qd) qd.querySelectorAll('.qd-btn').forEach(function(x){ x.classList.remove('selected'); });
+};
+
 window.addItem = function(list) {
   var ids = { dump: 'dumpInput', week: 'weekInput', today: 'todayInput' };
   var dateIds = { dump: 'dumpDate', week: 'weekDate', today: 'todayDate' };
@@ -440,6 +467,7 @@ window.addItem = function(list) {
   if (list === 'week' && state.week.length >= 10) { showToast('Max. 10 Aufgaben diese Woche!'); return; }
   var dateEl = document.getElementById(dateIds[list]);
   var deadline = dateEl ? dateEl.value : '';
+  if (!isValidDate(deadline)) { showToast('Bitte ein gueltiges Datum eingeben (z.B. 2026)'); document.getElementById(dateIds[list]).focus(); return; }
   state[list].push({ id: Date.now(), text: text, done: false, deadline: deadline });
   inp.value = '';
   if (dateEl) dateEl.value = '';
@@ -479,6 +507,7 @@ window.updateItemText = function(list, id, newText) {
 };
 
 window.updateItemDeadline = function(list, id, newDate) {
+  if (newDate && !isValidDate(newDate)) { showToast('Ungültiges Jahr – bitte 4-stellig eingeben'); render(); return; }
   state[list] = state[list].map(function(i){ return i.id===id ? Object.assign({},i,{deadline:newDate}) : i; });
   render(); scheduleSave();
 };
@@ -583,6 +612,8 @@ function makeItem(opts) {
       var inp = document.createElement('input');
       inp.type = 'date';
       inp.className = 'dl-input';
+      inp.min = '2025-01-01';
+      inp.max = '2035-12-31';
       inp.value = item.deadline || '';
       dlWrap.innerHTML = '';
       dlWrap.appendChild(inp);
