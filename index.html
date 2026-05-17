@@ -442,14 +442,6 @@ function initQuickDates() {
 }
 
 // ── CRUD ───────────────────────────────────────
-function isValidDate(val) {
-  if (!val) return true;
-  var parts = val.split('-');
-  if (parts.length !== 3) return false;
-  var year = parseInt(parts[0], 10);
-  return year >= 2025 && year <= 2035;
-}
-
 window.clearDate = function(dateId, qdId) {
   var el = document.getElementById(dateId);
   if (el) el.value = '';
@@ -467,7 +459,6 @@ window.addItem = function(list) {
   if (list === 'week' && state.week.length >= 10) { showToast('Max. 10 Aufgaben diese Woche!'); return; }
   var dateEl = document.getElementById(dateIds[list]);
   var deadline = dateEl ? dateEl.value : '';
-  if (!isValidDate(deadline)) { showToast('Bitte ein gueltiges Datum eingeben (z.B. 2026)'); document.getElementById(dateIds[list]).focus(); return; }
   state[list].push({ id: Date.now(), text: text, done: false, deadline: deadline });
   inp.value = '';
   if (dateEl) dateEl.value = '';
@@ -507,7 +498,6 @@ window.updateItemText = function(list, id, newText) {
 };
 
 window.updateItemDeadline = function(list, id, newDate) {
-  if (newDate && !isValidDate(newDate)) { showToast('Ungültiges Jahr – bitte 4-stellig eingeben'); render(); return; }
   state[list] = state[list].map(function(i){ return i.id===id ? Object.assign({},i,{deadline:newDate}) : i; });
   render(); scheduleSave();
 };
@@ -618,9 +608,6 @@ function makeItem(opts) {
       dlWrap.innerHTML = '';
       dlWrap.appendChild(inp);
       inp.focus();
-      inp.onchange = function() {
-        window.updateItemDeadline(list, item.id, inp.value);
-      };
       inp.onblur = function() {
         window.updateItemDeadline(list, item.id, inp.value);
       };
