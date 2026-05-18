@@ -37,6 +37,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 /* SYNC */
 .sync-bar { background: #1a1a2e; padding: 4px 24px; display: flex; align-items: center; justify-content: space-between; }
 .sync-status { font-size: 11px; color: #4caf50; }
+.sync-status.syncing { color: #f0a500; }
+.sync-status.synced  { color: #4caf50; }
 .today-date-display { font-size: 11px; color: #555; }
 
 /* MOBILE TABS */
@@ -171,8 +173,11 @@ body.focus-mode .mobile-tabs { display: none !important; }
   </div>
 
   <div class="sync-bar">
-    <span class="sync-status">&#10003; Lokal gespeichert</span>
-    <span class="today-date-display" id="todayDateDisplay"></span>
+    <span class="sync-status" id="syncStatus">&#10003; Lokal gespeichert</span>
+    <span style="display:flex;gap:10px;align-items:center;">
+      <button id="migrateBtn" onclick="startMigration()" style="display:none;background:rgba(255,200,0,0.15);border:1px solid #f0a500;border-radius:6px;color:#f0a500;font-size:11px;padding:3px 8px;cursor:pointer;font-family:inherit;">&#8635; Alte Daten laden</button>
+      <span class="today-date-display" id="todayDateDisplay"></span>
+    </span>
   </div>
 
   <div class="mobile-tabs" id="mobileTabs">
@@ -277,7 +282,22 @@ body.focus-mode .mobile-tabs { display: none !important; }
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const fbApp = initializeApp({
+  apiKey: "AIzaSyAfQOuV7ClTjCCru62v5F7jM3NjVWMtnOA",
+  authDomain: "planer-5ccee.firebaseapp.com",
+  projectId: "planer-5ccee",
+  storageBucket: "planer-5ccee.firebasestorage.app",
+  messagingSenderId: "343478188481",
+  appId: "1:343478188481:web:8be0e1abc3bab181595740"
+});
+const fbAuth = getAuth(fbApp);
+const fbDb   = getFirestore(fbApp);
+
 // ── STATE ──────────────────────────────────────
 var state = { dump: [], week: [], today: [], now: [] };
 var focusMode = false;
@@ -296,14 +316,67 @@ function load() {
       state.week  = d.week  || [];
       state.today = d.today || [];
       state.now   = d.now   || [];
+      return true;
     }
   } catch(e) {}
+  return false;
+}
+
+// ── FIREBASE MIGRATION (einmalig) ──────────────
+var migrated = localStorage.getItem('myplaner_migrated');
+
+function tryMigrate(uid) {
+  if (migrated) return;
+  setSyncStatus('syncing', '&#8635; Lade alte Daten...');
+  getDoc(doc(fbDb, 'users', uid)).then(function(snap) {
+    if (snap.exists()) {
+      var d = snap.data();
+      // Nur überschreiben wenn localStorage leer war
+      if (!state.dump.length && !state.week.length && !state.today.length) {
+        state.dump  = d.dump  || [];
+        state.week  = d.week  || [];
+        state.today = d.today || [];
+        state.now   = d.now   || [];
+        save();
+        render();
+        showToast('Deine Daten wurden wiederhergestellt!');
+      }
+    }
+    localStorage.setItem('myplaner_migrated', '1');
+    setSyncStatus('synced', '&#10003; Lokal gespeichert');
+  }).catch(function() {
+    setSyncStatus('synced', '&#10003; Lokal gespeichert');
+  });
+}
+
+onAuthStateChanged(fbAuth, function(user) {
+  if (user && !migrated) {
+    tryMigrate(user.uid);
+  }
+});
+
+// Migrations-Button: falls nicht mehr eingeloggt
+window.startMigration = async function() {
+  try {
+    var result = await signInWithPopup(fbAuth, new GoogleAuthProvider());
+    tryMigrate(result.user.uid);
+    document.getElementById('migrateBtn').style.display = 'none';
+  } catch(e) {
+    showToast('Anmeldung fehlgeschlagen.');
+  }
+};
+
+function setSyncStatus(cls, msg) {
+  var el = document.getElementById('syncStatus');
+  el.className = 'sync-status ' + cls;
+  el.innerHTML = msg;
 }
 
 // ── INIT ───────────────────────────────────────
 load();
 render();
 initQuickDates();
+if (!migrated) document.getElementById('migrateBtn').style.display = 'inline-block';
 (function() {
   var now = new Date();
   document.getElementById('todayDateDisplay').textContent =
