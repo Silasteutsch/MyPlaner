@@ -117,6 +117,7 @@ body.focus-mode .mobile-tabs { display: none !important; }
 .item-actions { display: flex; gap: 4px; flex-shrink: 0; align-items: flex-start; }
 .empty { text-align: center; color: #ccc; padding: 24px 0; font-size: 13px; line-height: 1.8; }
 .section-label { font-size: 10px; color: #ccc; font-weight: bold; margin: 12px 0 6px; letter-spacing: 0.5px; }
+.carryover-label { color: #f0a500; }
 .full-warning { background: #fff0f2; border: 1px solid #e94560; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #e94560; margin-bottom: 10px; }
 .limit-warn { background: #fff3cd; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #856404; margin-top: 6px; }
 .success { text-align: center; padding: 24px 16px; background: linear-gradient(135deg, #f0fff4, #e8f5e9); border-radius: 12px; margin-top: 10px; border: 1px solid #b2dfdb; }
@@ -374,6 +375,7 @@ function setSyncStatus(cls, msg) {
 
 // ── INIT ───────────────────────────────────────
 load();
+checkDayRollover();
 render();
 initQuickDates();
 if (!migrated) document.getElementById('migrateBtn').style.display = 'inline-block';
@@ -382,6 +384,26 @@ if (!migrated) document.getElementById('migrateBtn').style.display = 'inline-blo
   document.getElementById('todayDateDisplay').textContent =
     now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
 })();
+
+// ── DAY ROLLOVER ───────────────────────────────
+function checkDayRollover() {
+  var lastDate = localStorage.getItem('myplaner_lastdate');
+  var today = new Date().toISOString().slice(0, 10);
+  if (lastDate && lastDate !== today) {
+    var unfinished = state.today.filter(function(i){ return !i.done; });
+    if (unfinished.length) {
+      state.today = unfinished.map(function(i){
+        return Object.assign({}, i, { carriedOver: true, done: false });
+      });
+      save();
+      showToast(unfinished.length + ' Aufgabe(n) von gestern mitgenommen');
+    } else {
+      state.today = [];
+      save();
+    }
+  }
+  localStorage.setItem('myplaner_lastdate', today);
+}
 
 // ── FOCUS MODE ─────────────────────────────────
 window.toggleFocus = function() {
@@ -443,7 +465,10 @@ window.addItem = function(list) {
   var inp = document.getElementById(ids[list]);
   var text = inp.value.trim();
   if (!text) return;
-  if (list === 'today' && state.today.filter(function(i){ return !i.done; }).length >= 3) { showToast('Max. 3 Aufgaben heute!'); return; }
+  if (list === 'today') {
+    var newCount = state.today.filter(function(i){ return !i.done && !i.carriedOver; }).length;
+    if (newCount >= 3) showToast('Schon ' + newCount + ' neue Aufgaben heute – bewusst priorisieren!');
+  }
   if (list === 'week' && state.week.length >= 10) { showToast('Max. 10 Aufgaben diese Woche!'); return; }
   var dateEl = dateIds[list] ? document.getElementById(dateIds[list]) : null;
   var deadline = dateEl ? dateEl.value : '';
@@ -470,7 +495,10 @@ window.toggleDone = function(list, id) {
 window.moveItem = function(from, to, id) {
   var item = state[from].find(function(i){ return i.id===id; });
   if (!item) return;
-  if (to==='today' && state.today.filter(function(i){ return !i.done; }).length >= 3) { showToast('Heute ist voll (max. 3)!'); return; }
+  if (to==='today') {
+    var nc = state.today.filter(function(i){ return !i.done && !i.carriedOver; }).length;
+    if (nc >= 3) showToast('Schon ' + nc + ' neue Aufgaben heute – sicher?');
+  }
   if (to==='week' && state.week.length >= 10) { showToast('Woche ist voll (max. 10)!'); return; }
   state[from] = state[from].filter(function(i){ return i.id!==id; });
   state[to].push(Object.assign({}, item, {done:false}));
@@ -625,19 +653,58 @@ function renderWeek() {
 
 function renderToday() {
   var el = document.getElementById('todayList'); el.innerHTML = '';
-  var active = state.today.filter(function(i){ return !i.done; });
-  var done   = state.today.filter(function(i){ return i.done; });
-  document.getElementById('todayAddRow').style.display  = active.length >= 3 ? 'none' : 'flex';
-  document.getElementById('todayFullWarning').style.display = active.length >= 3 ? 'block' : 'none';
-  if (!state.today.length) { el.innerHTML = '<div class="empty">Aus Woche rueberziehen<br>oder direkt hinzufuegen</div>'; }
-  active.forEach(function(item,idx){
-    el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1}));
-  });
+  var carried = state.today.filter(function(i){ return !i.done && i.carriedOver; });
+  var active  = state.today.filter(function(i){ return !i.done && !i.carriedOver; });
+  var done    = state.today.filter(function(i){ return i.done; });
+
+  // Warn-Banner statt hartem Block
+  var warn = document.getElementById('todayFullWarning');
+  document.getElementById('todayAddRow').style.display = 'flex';
+  if (active.length >= 5) {
+    warn.style.display = 'block';
+    warn.innerHTML = '&#128683; 5+ Aufgaben heute &mdash; wirklich alle noetig?';
+    warn.style.background = '#fff0f2';
+  } else if (active.length >= 3) {
+    warn.style.display = 'block';
+    warn.innerHTML = '&#9888;&#65039; ' + active.length + ' neue Aufgaben &mdash; fokussiert bleiben!';
+    warn.style.background = '#fffbea';
+    warn.style.borderColor = '#f0a500';
+    warn.style.color = '#856404';
+  } else {
+    warn.style.display = 'none';
+  }
+
+  if (!state.today.length) {
+    el.innerHTML = '<div class="empty">Aus Woche rueberziehen<br>oder direkt hinzufuegen</div>';
+  }
+
+  // Von gestern
+  if (carried.length) {
+    var cl = document.createElement('div'); cl.className = 'section-label carryover-label';
+    cl.innerHTML = '&#8635; VON GESTERN'; el.appendChild(cl);
+    carried.forEach(function(item){
+      el.appendChild(makeItem({item:item, list:'today', showCheck:true}));
+    });
+  }
+
+  // Heute neue
+  if (active.length) {
+    if (carried.length) {
+      var nl = document.createElement('div'); nl.className = 'section-label'; nl.textContent = 'HEUTE NEU'; el.appendChild(nl);
+    }
+    active.forEach(function(item, idx){
+      el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1}));
+    });
+  }
+
   if (done.length) {
-    var lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent='ERLEDIGT'; el.appendChild(lbl);
+    var dl = document.createElement('div'); dl.className = 'section-label'; dl.textContent = 'ERLEDIGT'; el.appendChild(dl);
     done.forEach(function(item){ el.appendChild(makeItem({item:item, list:'today', showCheck:true})); });
   }
-  document.getElementById('successBox').style.display = (done.length===3 && active.length===0) ? 'block' : 'none';
+
+  var allNew = state.today.filter(function(i){ return !i.carriedOver; });
+  var allDone = allNew.length > 0 && allNew.every(function(i){ return i.done; }) && carried.filter(function(i){ return !i.done; }).length === 0;
+  document.getElementById('successBox').style.display = allDone ? 'block' : 'none';
 }
 
 function renderNow() {
@@ -659,9 +726,11 @@ function renderBadges() {
   var mdb=document.getElementById('mDumpBadge'), mwb=document.getElementById('mWeekBadge'), mtb=document.getElementById('mTodayBadge');
   if (state.dump.length) { db.textContent=state.dump.length; db.style.display='inline'; mdb.textContent=' '+state.dump.length; } else { db.style.display='none'; mdb.textContent=''; }
   if (state.week.length) { wb.textContent=state.week.length; wb.style.display='inline'; mwb.textContent=' '+state.week.length; } else { wb.style.display='none'; mwb.textContent=''; }
-  var a = state.today.filter(function(i){ return !i.done; }).length;
-  tb.textContent = a+'/3'; tb.className = 'col-badge'+(a>=3?'':' neutral');
-  mtb.textContent = ' '+a+'/3';
+  var a  = state.today.filter(function(i){ return !i.done && !i.carriedOver; }).length;
+  var co = state.today.filter(function(i){ return !i.done && i.carriedOver; }).length;
+  var label = a + (co ? '+' + co : '') + (a <= 3 ? '/3' : '');
+  tb.textContent = label; tb.className = 'col-badge' + (a >= 3 ? '' : ' neutral');
+  mtb.textContent = ' ' + label;
 }
 
 function renderUrgentBanner() {
