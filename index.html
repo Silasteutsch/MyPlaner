@@ -652,7 +652,10 @@ function renderDump() {
   var el = document.getElementById('dumpList'); el.innerHTML = '';
   if (!state.dump.length) { el.innerHTML = '<div class="empty">Noch leer<br>Fang einfach an &#9999;</div>'; return; }
   urgencySort(state.dump).forEach(function(item){
-    el.appendChild(makeItem({item:item, list:'dump', moveLabel:'&#8594; Woche', moveTo:'week'}));
+    el.appendChild(makeItem({item:item, list:'dump', moves:[
+      {label:'&#8594; Woche', to:'week'},
+      {label:'&#9679; Jetzt', to:'now'}
+    ]}));
   });
 }
 
@@ -663,6 +666,7 @@ function renderWeek() {
   urgencySort(state.week).forEach(function(item){
     el.appendChild(makeItem({item:item, list:'week', moves:[
       {label: ta<3 ? '&#8594; Heute' : null, to: 'today'},
+      {label:'&#9679; Jetzt', to:'now'},
       {label: '&#8592; Dump', to: 'dump'}
     ]}));
   });
@@ -703,7 +707,10 @@ function renderToday() {
     var cl = document.createElement('div'); cl.className = 'section-label carryover-label';
     cl.innerHTML = '&#8635; VON GESTERN'; el.appendChild(cl);
     carried.forEach(function(item){
-      el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[{label:'&#8592; Woche', to:'week'}]}));
+      el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[
+        {label:'&#9679; Jetzt', to:'now'},
+        {label:'&#8592; Woche', to:'week'}
+      ]}));
     });
   }
 
@@ -713,7 +720,10 @@ function renderToday() {
       var nl = document.createElement('div'); nl.className = 'section-label'; nl.textContent = 'HEUTE NEU'; el.appendChild(nl);
     }
     active.forEach(function(item, idx){
-      el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1, moves:[{label:'&#8592; Woche', to:'week'}]}));
+      el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1, moves:[
+        {label:'&#9679; Jetzt', to:'now'},
+        {label:'&#8592; Woche', to:'week'}
+      ]}));
     });
   }
 
