@@ -618,11 +618,13 @@ function makeItem(opts) {
   div.appendChild(textWrap);
 
   var ac = document.createElement('div'); ac.className = 'item-actions';
-  if (opts.moveLabel && opts.moveTo) {
-    var mb = document.createElement('button'); mb.className = 'move-btn'; mb.innerHTML = opts.moveLabel;
-    mb.onclick = (function(f,t,id){ return function(){ window.moveItem(f,t,id); }; })(list, opts.moveTo, item.id);
+  var moves = opts.moves || (opts.moveLabel ? [{label: opts.moveLabel, to: opts.moveTo}] : []);
+  moves.forEach(function(m) {
+    if (!m.label) return;
+    var mb = document.createElement('button'); mb.className = 'move-btn'; mb.innerHTML = m.label;
+    mb.onclick = (function(f,t,id){ return function(){ window.moveItem(f,t,id); }; })(list, m.to, item.id);
     ac.appendChild(mb);
-  }
+  });
   var db2 = document.createElement('button'); db2.className = 'del-btn'; db2.innerHTML = '&times;';
   db2.onclick = (function(l,id){ return function(){ window.deleteItem(l,id); }; })(list, item.id);
   ac.appendChild(db2);
@@ -644,7 +646,10 @@ function renderWeek() {
   if (!state.week.length) { el.innerHTML = '<div class="empty">Aus dem Dump rueberziehen</div>'; return; }
   var ta = state.today.filter(function(i){ return !i.done; }).length;
   urgencySort(state.week).forEach(function(item){
-    el.appendChild(makeItem({item:item, list:'week', moveLabel:ta<3?'&#8594; Heute':null, moveTo:'today'}));
+    el.appendChild(makeItem({item:item, list:'week', moves:[
+      {label: ta<3 ? '&#8594; Heute' : null, to: 'today'},
+      {label: '&#8592; Dump', to: 'dump'}
+    ]}));
   });
   if (state.week.length >= 10) {
     var w=document.createElement('div'); w.className='limit-warn'; w.textContent='10 Punkte erreicht. Erstmal abhaken!'; el.appendChild(w);
@@ -683,7 +688,7 @@ function renderToday() {
     var cl = document.createElement('div'); cl.className = 'section-label carryover-label';
     cl.innerHTML = '&#8635; VON GESTERN'; el.appendChild(cl);
     carried.forEach(function(item){
-      el.appendChild(makeItem({item:item, list:'today', showCheck:true}));
+      el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[{label:'&#8592; Woche', to:'week'}]}));
     });
   }
 
@@ -693,13 +698,13 @@ function renderToday() {
       var nl = document.createElement('div'); nl.className = 'section-label'; nl.textContent = 'HEUTE NEU'; el.appendChild(nl);
     }
     active.forEach(function(item, idx){
-      el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1}));
+      el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1, moves:[{label:'&#8592; Woche', to:'week'}]}));
     });
   }
 
   if (done.length) {
     var dl = document.createElement('div'); dl.className = 'section-label'; dl.textContent = 'ERLEDIGT'; el.appendChild(dl);
-    done.forEach(function(item){ el.appendChild(makeItem({item:item, list:'today', showCheck:true})); });
+    done.forEach(function(item){ el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[{label:'&#8592; Woche', to:'week'}]})); });
   }
 
   var allNew = state.today.filter(function(i){ return !i.carriedOver; });
