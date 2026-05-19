@@ -159,15 +159,16 @@ body.focus-mode .mobile-tabs { display: none !important; }
 <body>
 
 <!-- LOGIN (nur beim allerersten Mal pro Gerät) -->
-<div id="loginOverlay" style="display:none;position:fixed;inset:0;background:#1a1a2e;z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
-  <div style="background:#fff;border-radius:16px;padding:40px 32px;max-width:340px;width:90%;text-align:center;">
+<div id="loginOverlay" style="display:none;position:fixed;inset:0;background:#1a1a2e;z-index:999;align-items:center;justify-content:center;flex-direction:column;">
+  <div style="background:#fff;border-radius:16px;padding:40px 32px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.4);">
     <h1 style="font-size:22px;color:#1a1a2e;letter-spacing:1px;margin-bottom:8px;">MEIN PLANER</h1>
-    <p style="color:#888;font-size:13px;margin-bottom:28px;">Einmal anmelden &mdash; dann nie wieder.<br>Deine Daten sync auf allen Ger&auml;ten.</p>
-    <button onclick="signIn()" style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:13px 20px;border-radius:10px;border:1.5px solid #ddd;background:#fff;font-size:15px;font-family:inherit;cursor:pointer;font-weight:bold;color:#1a1a2e;">
+    <p style="color:#888;font-size:13px;margin-bottom:6px;">Einmal anmelden &mdash; dann nie wieder.</p>
+    <p style="color:#aaa;font-size:12px;margin-bottom:28px;">Deine Daten werden auf allen Ger&auml;ten synchronisiert.</p>
+    <button id="loginBtn" style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:14px 20px;border-radius:10px;border:1.5px solid #ddd;background:#fff;font-size:15px;font-family:inherit;cursor:pointer;font-weight:bold;color:#1a1a2e;transition:background 0.15s;">
       <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
       Mit Google anmelden
     </button>
-    <div id="loginError" style="color:#e94560;font-size:12px;margin-top:10px;"></div>
+    <div id="loginError" style="color:#e94560;font-size:12px;margin-top:12px;min-height:16px;"></div>
   </div>
 </div>
 
@@ -368,7 +369,6 @@ function setSyncStatus(cls, msg) {
 }
 
 // ── AUTH ───────────────────────────────────────
-// Firebase merkt sich die Session automatisch – kein erneutes Login nötig
 onAuthStateChanged(fbAuth, function(user) {
   if (user) {
     document.getElementById('loginOverlay').style.display = 'none';
@@ -380,13 +380,20 @@ onAuthStateChanged(fbAuth, function(user) {
   }
 });
 
-window.signIn = async function() {
+document.getElementById('loginBtn').addEventListener('click', async function() {
+  var btn = document.getElementById('loginBtn');
+  var err = document.getElementById('loginError');
+  btn.textContent = 'Wird verbunden...';
+  btn.disabled = true;
+  err.textContent = '';
   try {
     await signInWithPopup(fbAuth, new GoogleAuthProvider());
   } catch(e) {
-    document.getElementById('loginError').textContent = 'Anmeldung fehlgeschlagen.';
+    err.textContent = 'Anmeldung fehlgeschlagen – Popup erlaubt?';
+    btn.innerHTML = 'Nochmal versuchen';
+    btn.disabled = false;
   }
-};
+});
 
 // ── INIT ───────────────────────────────────────
 initQuickDates();
