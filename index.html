@@ -94,6 +94,8 @@ body.focus-mode .mobile-tabs { display: none !important; }
 .item { display: flex; align-items: flex-start; gap: 8px; background: #fafaf8; border-radius: 8px; padding: 9px 10px; margin-bottom: 7px; border: 1px solid #ebebeb; transition: box-shadow 0.15s; }
 .item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
 .item.done { opacity: 0.4; }
+.item.checking { animation: checkOff 0.5s ease forwards; pointer-events: none; }
+@keyframes checkOff { 0%{background:#fafaf8} 25%{background:#d4f5e0;transform:scale(1.01)} 100%{background:#d4f5e0;opacity:0;transform:scale(0.98)} }
 .item.urgent { border-left: 3px solid #e94560; background: #fff5f7; }
 .item.soon { border-left: 3px solid #f0a500; }
 .item-text { flex: 1; font-size: 13px; color: #1a1a2e; line-height: 1.4; cursor: text; outline: none; border-radius: 4px; padding: 1px 2px; }
@@ -109,6 +111,12 @@ body.focus-mode .mobile-tabs { display: none !important; }
 .dl-input { font-size: 11px; border: 1px solid #e94560; border-radius: 4px; padding: 1px 4px; outline: none; font-family: inherit; }
 .check-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #e94560; background: transparent; cursor: pointer; flex-shrink: 0; font-size: 10px; color: #fff; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
 .check-btn.checked { background: #bbb; border-color: #bbb; }
+.item.checking { animation: checkFlash 0.45s ease forwards; pointer-events: none; }
+@keyframes checkFlash {
+  0%   { background: #fafaf8; }
+  30%  { background: #d4f5e0; transform: scale(1.01); }
+  100% { background: #d4f5e0; opacity: 0; transform: scale(0.98); }
+}
 .badge-num { background: #e94560; color: #fff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; flex-shrink: 0; }
 .move-btn { background: #eef; border: none; border-radius: 6px; padding: 3px 7px; font-size: 11px; cursor: pointer; color: #446; white-space: nowrap; }
 .move-btn:hover { background: #dde; }
@@ -567,7 +575,14 @@ function makeItem(opts) {
     var cb = document.createElement('button');
     cb.className = 'check-btn' + (item.done ? ' checked' : '');
     cb.innerHTML = item.done ? '&#10003;' : '';
-    cb.onclick = (function(l,id){ return function(){ window.toggleDone(l,id); }; })(list, item.id);
+    cb.onclick = (function(l, id, isDone, d, c) {
+      return function() {
+        if (isDone) { window.toggleDone(l, id); return; }
+        c.classList.add('checked'); c.innerHTML = '&#10003;';
+        d.classList.add('checking');
+        setTimeout(function(){ window.toggleDone(l, id); }, 420);
+      };
+    })(list, item.id, item.done, div, cb);
     div.appendChild(cb);
   }
   if (opts.showBadge) {
