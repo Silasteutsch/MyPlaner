@@ -719,7 +719,7 @@ function renderToday() {
 
   if (done.length) {
     var dl = document.createElement('div'); dl.className = 'section-label'; dl.textContent = 'ERLEDIGT'; el.appendChild(dl);
-    done.forEach(function(item){ el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[{label:'&#8592; Woche', to:'week'}]})); });
+    done.forEach(function(item){ el.appendChild(makeItem({item:item, list:'today', showCheck:true})); });
   }
 
   var allNew = state.today.filter(function(i){ return !i.carriedOver; });
