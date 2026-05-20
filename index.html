@@ -94,6 +94,8 @@ body.focus-mode .mobile-tabs { display: none !important; }
 .item { display: flex; align-items: flex-start; gap: 8px; background: #fafaf8; border-radius: 8px; padding: 9px 10px; margin-bottom: 7px; border: 1px solid #ebebeb; transition: box-shadow 0.15s; }
 .item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
 .item.done { opacity: 0.4; }
+.item.checking { animation: checkOff 0.5s ease forwards; pointer-events: none; }
+@keyframes checkOff { 0%{background:#fafaf8} 25%{background:#d4f5e0;transform:scale(1.01)} 100%{background:#d4f5e0;opacity:0;transform:scale(0.98)} }
 .item.urgent { border-left: 3px solid #e94560; background: #fff5f7; }
 .item.soon { border-left: 3px solid #f0a500; }
 .item-text { flex: 1; font-size: 13px; color: #1a1a2e; line-height: 1.4; cursor: text; outline: none; border-radius: 4px; padding: 1px 2px; }
@@ -109,6 +111,12 @@ body.focus-mode .mobile-tabs { display: none !important; }
 .dl-input { font-size: 11px; border: 1px solid #e94560; border-radius: 4px; padding: 1px 4px; outline: none; font-family: inherit; }
 .check-btn { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #e94560; background: transparent; cursor: pointer; flex-shrink: 0; font-size: 10px; color: #fff; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
 .check-btn.checked { background: #bbb; border-color: #bbb; }
+.item.checking { animation: checkFlash 0.45s ease forwards; pointer-events: none; }
+@keyframes checkFlash {
+  0%   { background: #fafaf8; }
+  30%  { background: #d4f5e0; transform: scale(1.01); }
+  100% { background: #d4f5e0; opacity: 0; transform: scale(0.98); }
+}
 .badge-num { background: #e94560; color: #fff; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold; flex-shrink: 0; }
 .move-btn { background: #eef; border: none; border-radius: 6px; padding: 3px 7px; font-size: 11px; cursor: pointer; color: #446; white-space: nowrap; }
 .move-btn:hover { background: #dde; }
@@ -150,6 +158,20 @@ body.focus-mode .mobile-tabs { display: none !important; }
 </head>
 <body>
 
+<!-- LOGIN (nur beim allerersten Mal pro Gerät) -->
+<div id="loginOverlay" style="display:none;position:fixed;inset:0;background:#1a1a2e;z-index:999;align-items:center;justify-content:center;flex-direction:column;">
+  <div style="background:#fff;border-radius:16px;padding:40px 32px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.4);">
+    <h1 style="font-size:22px;color:#1a1a2e;letter-spacing:1px;margin-bottom:8px;">MEIN PLANER</h1>
+    <p style="color:#888;font-size:13px;margin-bottom:6px;">Einmal anmelden &mdash; dann nie wieder.</p>
+    <p style="color:#aaa;font-size:12px;margin-bottom:28px;">Deine Daten werden auf allen Ger&auml;ten synchronisiert.</p>
+    <button id="loginBtn" style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:14px 20px;border-radius:10px;border:1.5px solid #ddd;background:#fff;font-size:15px;font-family:inherit;cursor:pointer;font-weight:bold;color:#1a1a2e;transition:background 0.15s;">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Mit Google anmelden
+    </button>
+    <div id="loginError" style="color:#e94560;font-size:12px;margin-top:12px;min-height:16px;"></div>
+  </div>
+</div>
+
 <div id="appScreen">
   <div class="header">
     <div class="header-left">
@@ -174,11 +196,8 @@ body.focus-mode .mobile-tabs { display: none !important; }
   </div>
 
   <div class="sync-bar">
-    <span class="sync-status" id="syncStatus">&#10003; Lokal gespeichert</span>
-    <span style="display:flex;gap:10px;align-items:center;">
-      <button id="migrateBtn" onclick="startMigration()" style="display:none;background:rgba(255,200,0,0.15);border:1px solid #f0a500;border-radius:6px;color:#f0a500;font-size:11px;padding:3px 8px;cursor:pointer;font-family:inherit;">&#8635; Alte Daten laden</button>
-      <span class="today-date-display" id="todayDateDisplay"></span>
-    </span>
+    <span class="sync-status" id="syncStatus">&#10003; Synchronisiert</span>
+    <span class="today-date-display" id="todayDateDisplay"></span>
   </div>
 
   <div class="mobile-tabs" id="mobileTabs">
@@ -286,7 +305,7 @@ body.focus-mode .mobile-tabs { display: none !important; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const fbApp = initializeApp({
   apiKey: "AIzaSyAfQOuV7ClTjCCru62v5F7jM3NjVWMtnOA",
@@ -302,88 +321,85 @@ const fbDb   = getFirestore(fbApp);
 // ── STATE ──────────────────────────────────────
 var state = { dump: [], week: [], today: [], now: [] };
 var focusMode = false;
+var saveTimer = null;
+var unsubFirestore = null;
+var currentUid = null;
 
-// ── PERSIST ────────────────────────────────────
-function save() {
-  try { localStorage.setItem('myplaner', JSON.stringify(state)); } catch(e) {}
+// ── SYNC ───────────────────────────────────────
+function scheduleSave() {
+  setSyncStatus('syncing', '&#8635; Speichert...');
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(function() {
+    if (!currentUid) return;
+    setDoc(doc(fbDb, 'users', currentUid), {
+      dump: state.dump, week: state.week, today: state.today, now: state.now,
+      updated: new Date().toISOString()
+    }).then(function() {
+      setSyncStatus('synced', '&#10003; Synchronisiert');
+    }).catch(function() {
+      setSyncStatus('error', '&#9888; Sync-Fehler');
+    });
+  }, 800);
 }
 
-function load() {
-  try {
-    var raw = localStorage.getItem('myplaner');
-    if (raw) {
-      var d = JSON.parse(raw);
+function startSync(uid) {
+  currentUid = uid;
+  setSyncStatus('syncing', '&#8635; Verbinde...');
+  if (unsubFirestore) unsubFirestore();
+  unsubFirestore = onSnapshot(doc(fbDb, 'users', uid), function(snap) {
+    if (snap.exists()) {
+      var d = snap.data();
       state.dump  = d.dump  || [];
       state.week  = d.week  || [];
       state.today = d.today || [];
       state.now   = d.now   || [];
-      return true;
     }
-  } catch(e) {}
-  return false;
-}
-
-// ── FIREBASE MIGRATION (einmalig) ──────────────
-var migrated = localStorage.getItem('myplaner_migrated');
-
-function tryMigrate(uid) {
-  if (migrated) return;
-  setSyncStatus('syncing', '&#8635; Lade alte Daten...');
-  getDoc(doc(fbDb, 'users', uid)).then(function(snap) {
-    if (snap.exists()) {
-      var d = snap.data();
-      // Nur überschreiben wenn localStorage leer war
-      if (!state.dump.length && !state.week.length && !state.today.length) {
-        state.dump  = d.dump  || [];
-        state.week  = d.week  || [];
-        state.today = d.today || [];
-        state.now   = d.now   || [];
-        save();
-        render();
-        showToast('Deine Daten wurden wiederhergestellt!');
-      }
-    }
-    localStorage.setItem('myplaner_migrated', '1');
-    setSyncStatus('synced', '&#10003; Lokal gespeichert');
-  }).catch(function() {
-    setSyncStatus('synced', '&#10003; Lokal gespeichert');
+    checkDayRollover();
+    render();
+    setSyncStatus('synced', '&#10003; Synchronisiert');
+  }, function() {
+    setSyncStatus('error', '&#9888; Offline');
   });
 }
 
-onAuthStateChanged(fbAuth, function(user) {
-  if (user && !migrated) {
-    tryMigrate(user.uid);
-  }
-});
-
-// Migrations-Button: falls nicht mehr eingeloggt
-window.startMigration = async function() {
-  try {
-    var result = await signInWithPopup(fbAuth, new GoogleAuthProvider());
-    tryMigrate(result.user.uid);
-    document.getElementById('migrateBtn').style.display = 'none';
-  } catch(e) {
-    showToast('Anmeldung fehlgeschlagen.');
-  }
-};
-
 function setSyncStatus(cls, msg) {
   var el = document.getElementById('syncStatus');
-  el.className = 'sync-status ' + cls;
+  el.className = 'sync-status ' + (cls === 'error' ? '' : cls);
   el.innerHTML = msg;
 }
 
+// ── AUTH ───────────────────────────────────────
+onAuthStateChanged(fbAuth, function(user) {
+  if (user) {
+    document.getElementById('loginOverlay').style.display = 'none';
+    startSync(user.uid);
+  } else {
+    document.getElementById('loginOverlay').style.display = 'flex';
+    if (unsubFirestore) unsubFirestore();
+    currentUid = null;
+  }
+});
+
+document.getElementById('loginBtn').addEventListener('click', async function() {
+  var btn = document.getElementById('loginBtn');
+  var err = document.getElementById('loginError');
+  btn.textContent = 'Wird verbunden...';
+  btn.disabled = true;
+  err.textContent = '';
+  try {
+    await signInWithPopup(fbAuth, new GoogleAuthProvider());
+  } catch(e) {
+    err.textContent = 'Anmeldung fehlgeschlagen – Popup erlaubt?';
+    btn.innerHTML = 'Nochmal versuchen';
+    btn.disabled = false;
+  }
+});
+
 // ── INIT ───────────────────────────────────────
-load();
-checkDayRollover();
-render();
 initQuickDates();
-if (!migrated) document.getElementById('migrateBtn').style.display = 'inline-block';
-(function() {
-  var now = new Date();
-  document.getElementById('todayDateDisplay').textContent =
-    now.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
-})();
+render();
+document.getElementById('todayDateDisplay').textContent =
+  new Date().toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
 
 // ── DAY ROLLOVER ───────────────────────────────
 function checkDayRollover() {
@@ -395,11 +411,11 @@ function checkDayRollover() {
       state.today = unfinished.map(function(i){
         return Object.assign({}, i, { carriedOver: true, done: false });
       });
-      save();
+      scheduleSave();
       showToast(unfinished.length + ' Aufgabe(n) von gestern mitgenommen');
     } else {
       state.today = [];
-      save();
+      scheduleSave();
     }
   }
   localStorage.setItem('myplaner_lastdate', today);
@@ -477,19 +493,19 @@ window.addItem = function(list) {
   if (dateEl) { dateEl.value = ''; }
   var qd = dateIds[list] ? document.getElementById(list + 'QuickDates') : null;
   if (qd) qd.querySelectorAll('.qd-btn').forEach(function(x){ x.classList.remove('selected'); });
-  save();
+  scheduleSave();
   render();
   inp.focus();
 };
 
 window.deleteItem = function(list, id) {
   state[list] = state[list].filter(function(i){ return i.id !== id; });
-  save(); render();
+  scheduleSave(); render();
 };
 
 window.toggleDone = function(list, id) {
   state[list] = state[list].map(function(i){ return i.id===id ? Object.assign({},i,{done:!i.done}) : i; });
-  save(); render();
+  scheduleSave(); render();
 };
 
 window.moveItem = function(from, to, id) {
@@ -502,7 +518,7 @@ window.moveItem = function(from, to, id) {
   if (to==='week' && state.week.length >= 10) { showToast('Woche ist voll (max. 10)!'); return; }
   state[from] = state[from].filter(function(i){ return i.id!==id; });
   state[to].push(Object.assign({}, item, {done:false}));
-  save(); render();
+  scheduleSave(); render();
   showToast('Aufgabe verschoben');
 };
 
@@ -510,12 +526,12 @@ window.updateItemText = function(list, id, newText) {
   var trimmed = newText.trim();
   if (!trimmed) return;
   state[list] = state[list].map(function(i){ return i.id===id ? Object.assign({},i,{text:trimmed}) : i; });
-  save();
+  scheduleSave();
 };
 
 window.updateItemDeadline = function(list, id, newDate) {
   state[list] = state[list].map(function(i){ return i.id===id ? Object.assign({},i,{deadline:newDate}) : i; });
-  save(); render();
+  scheduleSave(); render();
 };
 
 // ── URGENCY ────────────────────────────────────
@@ -567,7 +583,14 @@ function makeItem(opts) {
     var cb = document.createElement('button');
     cb.className = 'check-btn' + (item.done ? ' checked' : '');
     cb.innerHTML = item.done ? '&#10003;' : '';
-    cb.onclick = (function(l,id){ return function(){ window.toggleDone(l,id); }; })(list, item.id);
+    cb.onclick = (function(l, id, isDone, d, c) {
+      return function() {
+        if (isDone) { window.toggleDone(l, id); return; }
+        c.classList.add('checked'); c.innerHTML = '&#10003;';
+        d.classList.add('checking');
+        setTimeout(function(){ window.toggleDone(l, id); }, 420);
+      };
+    })(list, item.id, item.done, div, cb);
     div.appendChild(cb);
   }
   if (opts.showBadge) {
@@ -637,7 +660,10 @@ function renderDump() {
   var el = document.getElementById('dumpList'); el.innerHTML = '';
   if (!state.dump.length) { el.innerHTML = '<div class="empty">Noch leer<br>Fang einfach an &#9999;</div>'; return; }
   urgencySort(state.dump).forEach(function(item){
-    el.appendChild(makeItem({item:item, list:'dump', moveLabel:'&#8594; Woche', moveTo:'week'}));
+    el.appendChild(makeItem({item:item, list:'dump', moves:[
+      {label:'&#8594; Woche', to:'week'},
+      {label:'&#9679; Jetzt', to:'now'}
+    ]}));
   });
 }
 
@@ -648,6 +674,7 @@ function renderWeek() {
   urgencySort(state.week).forEach(function(item){
     el.appendChild(makeItem({item:item, list:'week', moves:[
       {label: ta<3 ? '&#8594; Heute' : null, to: 'today'},
+      {label:'&#9679; Jetzt', to:'now'},
       {label: '&#8592; Dump', to: 'dump'}
     ]}));
   });
@@ -688,7 +715,10 @@ function renderToday() {
     var cl = document.createElement('div'); cl.className = 'section-label carryover-label';
     cl.innerHTML = '&#8635; VON GESTERN'; el.appendChild(cl);
     carried.forEach(function(item){
-      el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[{label:'&#8592; Woche', to:'week'}]}));
+      el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[
+        {label:'&#9679; Jetzt', to:'now'},
+        {label:'&#8592; Woche', to:'week'}
+      ]}));
     });
   }
 
@@ -698,13 +728,16 @@ function renderToday() {
       var nl = document.createElement('div'); nl.className = 'section-label'; nl.textContent = 'HEUTE NEU'; el.appendChild(nl);
     }
     active.forEach(function(item, idx){
-      el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1, moves:[{label:'&#8592; Woche', to:'week'}]}));
+      el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1, moves:[
+        {label:'&#9679; Jetzt', to:'now'},
+        {label:'&#8592; Woche', to:'week'}
+      ]}));
     });
   }
 
   if (done.length) {
     var dl = document.createElement('div'); dl.className = 'section-label'; dl.textContent = 'ERLEDIGT'; el.appendChild(dl);
-    done.forEach(function(item){ el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[{label:'&#8592; Woche', to:'week'}]})); });
+    done.forEach(function(item){ el.appendChild(makeItem({item:item, list:'today', showCheck:true})); });
   }
 
   var allNew = state.today.filter(function(i){ return !i.carriedOver; });
