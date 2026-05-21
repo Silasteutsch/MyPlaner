@@ -515,7 +515,6 @@ window.moveItem = function(from, to, id) {
     var nc = state.today.filter(function(i){ return !i.done && !i.carriedOver; }).length;
     if (nc >= 3) showToast('Schon ' + nc + ' neue Aufgaben heute – sicher?');
   }
-  if (to==='week' && state.week.length >= 10) { showToast('Woche ist voll (max. 10)!'); return; }
   state[from] = state[from].filter(function(i){ return i.id!==id; });
   state[to].push(Object.assign({}, item, {done:false}));
   scheduleSave(); render();
@@ -670,7 +669,7 @@ function renderDump() {
 function renderWeek() {
   var el = document.getElementById('weekList'); el.innerHTML = '';
   if (!state.week.length) { el.innerHTML = '<div class="empty">Aus dem Dump rueberziehen</div>'; return; }
-  var ta = state.today.filter(function(i){ return !i.done; }).length;
+  var ta = state.today.filter(function(i){ return !i.done && !i.carriedOver; }).length;
   urgencySort(state.week).forEach(function(item){
     el.appendChild(makeItem({item:item, list:'week', moves:[
       {label: ta<3 ? '&#8594; Heute' : null, to: 'today'},
