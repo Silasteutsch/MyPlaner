@@ -425,6 +425,31 @@ function setupDropZones() {
   });
 }
 
+// ── SWIPE (Mobile) ─────────────────────────────
+(function() {
+  var startX, startY, activeTab = 0;
+  var cols = document.getElementById('appScreen');
+  cols.addEventListener('touchstart', function(e) {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+  }, {passive: true});
+  cols.addEventListener('touchend', function(e) {
+    if (startX == null) return;
+    var dx = e.changedTouches[0].clientX - startX;
+    var dy = e.changedTouches[0].clientY - startY;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    var tabs = document.querySelectorAll('.mobile-tabs .tab');
+    if (!tabs.length || window.getComputedStyle(tabs[0]).display === 'none') return;
+    var next = dx < 0
+      ? Math.min(activeTab + 1, tabs.length - 1)
+      : Math.max(activeTab - 1, 0);
+    if (next !== activeTab) { activeTab = next; window.switchMobileTab(activeTab); }
+    startX = null;
+  }, {passive: true});
+  var orig = window.switchMobileTab;
+  window.switchMobileTab = function(i) { activeTab = i; orig(i); };
+})();
+
 // ── INIT ───────────────────────────────────────
 initQuickDates();
 setupDropZones();
