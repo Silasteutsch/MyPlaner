@@ -829,8 +829,8 @@ function renderNow() {
   if (!state.now.length) { el.innerHTML = '<div class="empty">Was willst du<br>jetzt gerade tun? &#9889;</div>'; return; }
   active.forEach(function(item){
     el.appendChild(makeItem({item:item, list:'now', showCheck:true, moves:[
-      {label:'&#8594; Heute', to:'today'},
-      {label:'&#8594; Woche', to:'week'}
+      {label:'&#8592; Heute', to:'today'},
+      {label:'&#8592; Woche', to:'week'}
     ]}));
   });
   if (done.length) {
