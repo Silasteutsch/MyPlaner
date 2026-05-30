@@ -684,6 +684,12 @@ function makeItem(opts) {
     if (sp.contentEditable === 'true') return;
     sp.contentEditable = true;
     sp.focus();
+    var range = document.createRange();
+    range.selectNodeContents(sp);
+    range.collapse(false);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
   };
   sp.onblur = function() {
     sp.contentEditable = false;
