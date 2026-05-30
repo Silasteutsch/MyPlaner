@@ -94,7 +94,10 @@ body.focus-mode .mobile-tabs { display: none !important; }
 .item { display: flex; align-items: flex-start; gap: 8px; background: #fafaf8; border-radius: 8px; padding: 9px 10px; margin-bottom: 7px; border: 1px solid #ebebeb; transition: box-shadow 0.15s; }
 .item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
 .item.done { opacity: 0.4; }
-.item.checking { animation: checkOff 0.5s ease forwards; pointer-events: none; }
+.item.dragging { opacity: 0.35; transform: scale(0.98); }
+.item[draggable=true] { cursor: grab; }
+.item[draggable=true]:active { cursor: grabbing; }
+.drop-zone.drag-over { outline: 2px dashed #e94560; outline-offset: 4px; background: #fff5f7; border-radius: 8px; }
 @keyframes checkOff { 0%{background:#fafaf8} 25%{background:#d4f5e0;transform:scale(1.01)} 100%{background:#d4f5e0;opacity:0;transform:scale(0.98)} }
 .item.urgent { border-left: 3px solid #e94560; background: #fff5f7; }
 .item.soon { border-left: 3px solid #f0a500; }
@@ -395,8 +398,34 @@ document.getElementById('loginBtn').addEventListener('click', async function() {
   }
 });
 
+// ── DRAG & DROP ────────────────────────────────
+function setupDropZones() {
+  var map = {dumpList:'dump', weekList:'week', todayList:'today', nowList:'now'};
+  Object.keys(map).forEach(function(elId) {
+    var el = document.getElementById(elId);
+    var to = map[elId];
+    el.classList.add('drop-zone');
+    el.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', function(e) {
+      if (!el.contains(e.relatedTarget)) el.classList.remove('drag-over');
+    });
+    el.addEventListener('drop', function(e) {
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      try {
+        var data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        if (data.list !== to) window.moveItem(data.list, to, data.id);
+      } catch(err) {}
+    });
+  });
+}
+
 // ── INIT ───────────────────────────────────────
 initQuickDates();
+setupDropZones();
 render();
 document.getElementById('todayDateDisplay').textContent =
   new Date().toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
@@ -578,6 +607,17 @@ function makeItem(opts) {
   var div = document.createElement('div');
   div.className = cls;
 
+  div.draggable = true;
+  div.addEventListener('dragstart', function(e) {
+    e.dataTransfer.setData('text/plain', JSON.stringify({list: list, id: item.id}));
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(function(){ div.classList.add('dragging'); }, 0);
+  });
+  div.addEventListener('dragend', function() {
+    div.classList.remove('dragging');
+    document.querySelectorAll('.drop-zone').forEach(function(z){ z.classList.remove('drag-over'); });
+  });
+
   if (opts.showCheck) {
     var cb = document.createElement('button');
     cb.className = 'check-btn' + (item.done ? ' checked' : '');
@@ -750,7 +790,10 @@ function renderNow() {
   var done   = state.now.filter(function(i){ return i.done; });
   if (!state.now.length) { el.innerHTML = '<div class="empty">Was willst du<br>jetzt gerade tun? &#9889;</div>'; return; }
   active.forEach(function(item){
-    el.appendChild(makeItem({item:item, list:'now', showCheck:true}));
+    el.appendChild(makeItem({item:item, list:'now', showCheck:true, moves:[
+      {label:'&#8594; Heute', to:'today'},
+      {label:'&#8594; Woche', to:'week'}
+    ]}));
   });
   if (done.length) {
     var lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent='ERLEDIGT'; el.appendChild(lbl);
