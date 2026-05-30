@@ -128,6 +128,15 @@ body.focus-mode .mobile-tabs { display: none !important; }
 .del-btn { background: none; border: none; color: #ddd; font-size: 18px; cursor: pointer; padding: 0 2px; line-height: 1; }
 .del-btn:hover { color: #e94560; }
 .item-actions { display: flex; gap: 4px; flex-shrink: 0; align-items: flex-start; }
+.label-chip { display: inline-flex; align-items: center; gap: 3px; border-radius: 20px; padding: 2px 7px; font-size: 10px; font-weight: bold; cursor: pointer; margin-top: 3px; border: none; font-family: inherit; white-space: nowrap; opacity: 0.85; }
+.label-chip:hover { opacity: 1; }
+.label-add { background: #f0f0eb; color: #aaa; border: 1px dashed #ccc; border-radius: 20px; padding: 2px 7px; font-size: 10px; cursor: pointer; font-family: inherit; margin-top: 3px; }
+.label-add:hover { border-color: #aaa; color: #666; }
+.label-picker { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; padding: 8px; background: #f8f8f4; border-radius: 8px; border: 1px solid #e8e8e0; }
+.label-opt { border-radius: 20px; padding: 3px 9px; font-size: 11px; font-weight: bold; cursor: pointer; border: 2px solid transparent; font-family: inherit; white-space: nowrap; }
+.label-opt:hover { filter: brightness(0.9); }
+.label-opt.active { border-color: #1a1a2e; }
+.label-opt.remove { background: #f0f0eb; color: #aaa; font-weight: normal; }
 .empty { text-align: center; color: #ccc; padding: 24px 0; font-size: 13px; line-height: 1.8; }
 .section-label { font-size: 10px; color: #ccc; font-weight: bold; margin: 12px 0 6px; letter-spacing: 0.5px; }
 .carryover-label { color: #f0a500; }
@@ -577,6 +586,20 @@ window.moveItem = function(from, to, id) {
   showToast('Aufgabe verschoben');
 };
 
+var LABELS = [
+  { id: 'quick',    icon: '⚡', text: '5 Min',       bg: '#fff3cd', color: '#856404' },
+  { id: 'low',      icon: '🌿', text: 'Low Energy',  bg: '#d4edda', color: '#155724' },
+  { id: 'high',     icon: '🔥', text: 'High Energy', bg: '#fde8e8', color: '#c0392b' },
+  { id: 'long',     icon: '⏳', text: 'Länger',      bg: '#d6eaf8', color: '#1a5276' },
+  { id: 'dopamine', icon: '🍭', text: 'Dopamin',     bg: '#ead6f8', color: '#6c3483' },
+  { id: 'annoying', icon: '😤', text: 'Nervig',      bg: '#e8e8e8', color: '#555' },
+];
+
+window.updateItemLabel = function(list, id, labelId) {
+  state[list] = state[list].map(function(i){ return i.id===id ? Object.assign({},i,{label:labelId}) : i; });
+  scheduleSave(); render();
+};
+
 window.reorderItem = function(list, dragId, targetId, before) {
   var items = state[list].slice();
   var from = items.findIndex(function(i){ return i.id === dragId; });
@@ -746,6 +769,46 @@ function makeItem(opts) {
   };
   dlWrap.appendChild(editDl);
   textWrap.appendChild(dlWrap);
+
+  // Label
+  var labelRow = document.createElement('div');
+  var curLabel = item.label ? LABELS.find(function(l){ return l.id === item.label; }) : null;
+  var labelBtn = document.createElement('button');
+  if (curLabel) {
+    labelBtn.className = 'label-chip';
+    labelBtn.style.cssText = 'background:' + curLabel.bg + ';color:' + curLabel.color;
+    labelBtn.textContent = curLabel.icon + ' ' + curLabel.text;
+  } else {
+    labelBtn.className = 'label-add';
+    labelBtn.textContent = '＋ Label';
+  }
+  var picker = null;
+  labelBtn.onclick = function(e) {
+    e.stopPropagation();
+    if (picker) { picker.remove(); picker = null; return; }
+    picker = document.createElement('div');
+    picker.className = 'label-picker';
+    LABELS.forEach(function(lbl) {
+      var opt = document.createElement('button');
+      opt.className = 'label-opt' + (item.label === lbl.id ? ' active' : '');
+      opt.style.cssText = 'background:' + lbl.bg + ';color:' + lbl.color;
+      opt.textContent = lbl.icon + ' ' + lbl.text;
+      opt.onclick = function(e) { e.stopPropagation(); window.updateItemLabel(list, item.id, item.label === lbl.id ? '' : lbl.id); };
+      picker.appendChild(opt);
+    });
+    var rem = document.createElement('button');
+    rem.className = 'label-opt remove';
+    rem.textContent = '✕ entfernen';
+    rem.onclick = function(e) { e.stopPropagation(); window.updateItemLabel(list, item.id, ''); };
+    picker.appendChild(rem);
+    labelRow.appendChild(picker);
+    setTimeout(function() {
+      document.addEventListener('click', function h(){ picker && picker.remove(); picker = null; document.removeEventListener('click', h); });
+    }, 0);
+  };
+  labelRow.appendChild(labelBtn);
+  textWrap.appendChild(labelRow);
+
   div.appendChild(textWrap);
 
   var ac = document.createElement('div'); ac.className = 'item-actions';
