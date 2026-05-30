@@ -94,7 +94,12 @@ body.focus-mode .mobile-tabs { display: none !important; }
 .item { display: flex; align-items: flex-start; gap: 8px; background: #fafaf8; border-radius: 8px; padding: 9px 10px; margin-bottom: 7px; border: 1px solid #ebebeb; transition: box-shadow 0.15s; }
 .item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
 .item.done { opacity: 0.4; }
-.item.checking { animation: checkOff 0.5s ease forwards; pointer-events: none; }
+.item.dragging { opacity: 0.35; transform: scale(0.98); }
+.item[draggable=true] { cursor: grab; }
+.item[draggable=true]:active { cursor: grabbing; }
+.drop-zone.drag-over { outline: 2px dashed #e94560; outline-offset: 4px; background: #fff5f7; border-radius: 8px; }
+.item.drag-above { border-top: 2px solid #e94560 !important; }
+.item.drag-below { border-bottom: 2px solid #e94560 !important; }
 @keyframes checkOff { 0%{background:#fafaf8} 25%{background:#d4f5e0;transform:scale(1.01)} 100%{background:#d4f5e0;opacity:0;transform:scale(0.98)} }
 .item.urgent { border-left: 3px solid #e94560; background: #fff5f7; }
 .item.soon { border-left: 3px solid #f0a500; }
@@ -395,8 +400,34 @@ document.getElementById('loginBtn').addEventListener('click', async function() {
   }
 });
 
+// ── DRAG & DROP ────────────────────────────────
+function setupDropZones() {
+  var map = {dumpList:'dump', weekList:'week', todayList:'today', nowList:'now'};
+  Object.keys(map).forEach(function(elId) {
+    var el = document.getElementById(elId);
+    var to = map[elId];
+    el.classList.add('drop-zone');
+    el.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      el.classList.add('drag-over');
+    });
+    el.addEventListener('dragleave', function(e) {
+      if (!el.contains(e.relatedTarget)) el.classList.remove('drag-over');
+    });
+    el.addEventListener('drop', function(e) {
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      try {
+        var data = JSON.parse(e.dataTransfer.getData('text/plain'));
+        if (data.list !== to) window.moveItem(data.list, to, data.id);
+      } catch(err) {}
+    });
+  });
+}
+
 // ── INIT ───────────────────────────────────────
 initQuickDates();
+setupDropZones();
 render();
 document.getElementById('todayDateDisplay').textContent =
   new Date().toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
@@ -521,6 +552,16 @@ window.moveItem = function(from, to, id) {
   showToast('Aufgabe verschoben');
 };
 
+window.reorderItem = function(list, dragId, targetId, before) {
+  var items = state[list].slice();
+  var from = items.findIndex(function(i){ return i.id === dragId; });
+  var dragged = items.splice(from, 1)[0];
+  var to = items.findIndex(function(i){ return i.id === targetId; });
+  items.splice(before ? to : to + 1, 0, dragged);
+  state[list] = items;
+  scheduleSave(); render();
+};
+
 window.updateItemText = function(list, id, newText) {
   var trimmed = newText.trim();
   if (!trimmed) return;
@@ -577,6 +618,43 @@ function makeItem(opts) {
   }
   var div = document.createElement('div');
   div.className = cls;
+
+  div.draggable = true;
+  div.addEventListener('dragstart', function(e) {
+    e.dataTransfer.setData('text/plain', JSON.stringify({list: list, id: item.id}));
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(function(){ div.classList.add('dragging'); }, 0);
+  });
+  div.addEventListener('dragend', function() {
+    div.classList.remove('dragging');
+    document.querySelectorAll('.drop-zone').forEach(function(z){ z.classList.remove('drag-over'); });
+    document.querySelectorAll('.item').forEach(function(i){ i.classList.remove('drag-above','drag-below'); });
+  });
+  div.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    document.querySelectorAll('.item').forEach(function(i){ i.classList.remove('drag-above','drag-below'); });
+    var mid = div.getBoundingClientRect().top + div.offsetHeight / 2;
+    div.classList.add(e.clientY < mid ? 'drag-above' : 'drag-below');
+  });
+  div.addEventListener('dragleave', function(e) {
+    if (!div.contains(e.relatedTarget)) div.classList.remove('drag-above','drag-below');
+  });
+  div.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var above = div.classList.contains('drag-above');
+    div.classList.remove('drag-above','drag-below');
+    try {
+      var data = JSON.parse(e.dataTransfer.getData('text/plain'));
+      if (data.id === item.id) return;
+      if (data.list === list) {
+        window.reorderItem(list, data.id, item.id, above);
+      } else {
+        window.moveItem(data.list, list, data.id);
+      }
+    } catch(err) {}
+  });
 
   if (opts.showCheck) {
     var cb = document.createElement('button');
@@ -658,7 +736,7 @@ function makeItem(opts) {
 function renderDump() {
   var el = document.getElementById('dumpList'); el.innerHTML = '';
   if (!state.dump.length) { el.innerHTML = '<div class="empty">Noch leer<br>Fang einfach an &#9999;</div>'; return; }
-  urgencySort(state.dump).forEach(function(item){
+  state.dump.forEach(function(item){
     el.appendChild(makeItem({item:item, list:'dump', moves:[
       {label:'&#8594; Woche', to:'week'},
       {label:'&#9679; Jetzt', to:'now'}
@@ -670,7 +748,7 @@ function renderWeek() {
   var el = document.getElementById('weekList'); el.innerHTML = '';
   if (!state.week.length) { el.innerHTML = '<div class="empty">Aus dem Dump rueberziehen</div>'; return; }
   var ta = state.today.filter(function(i){ return !i.done && !i.carriedOver; }).length;
-  urgencySort(state.week).forEach(function(item){
+  state.week.forEach(function(item){
     el.appendChild(makeItem({item:item, list:'week', moves:[
       {label: ta<3 ? '&#8594; Heute' : null, to: 'today'},
       {label:'&#9679; Jetzt', to:'now'},
@@ -750,7 +828,10 @@ function renderNow() {
   var done   = state.now.filter(function(i){ return i.done; });
   if (!state.now.length) { el.innerHTML = '<div class="empty">Was willst du<br>jetzt gerade tun? &#9889;</div>'; return; }
   active.forEach(function(item){
-    el.appendChild(makeItem({item:item, list:'now', showCheck:true}));
+    el.appendChild(makeItem({item:item, list:'now', showCheck:true, moves:[
+      {label:'&#8594; Heute', to:'today'},
+      {label:'&#8594; Woche', to:'week'}
+    ]}));
   });
   if (done.length) {
     var lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent='ERLEDIGT'; el.appendChild(lbl);
