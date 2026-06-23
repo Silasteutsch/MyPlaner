@@ -211,7 +211,10 @@ body.focus-mode .mobile-tabs { display: none !important; }
 
   <div class="sync-bar">
     <span class="sync-status" id="syncStatus">&#10003; Synchronisiert</span>
-    <span class="today-date-display" id="todayDateDisplay"></span>
+    <span style="display:flex;gap:12px;align-items:center;">
+      <span style="font-size:10px;color:#444;letter-spacing:0.5px;">v1.0</span>
+      <span class="today-date-display" id="todayDateDisplay"></span>
+    </span>
   </div>
 
   <div class="mobile-tabs" id="mobileTabs">
@@ -319,7 +322,7 @@ body.focus-mode .mobile-tabs { display: none !important; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, setDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const fbApp = initializeApp({
   apiKey: "AIzaSyAfQOuV7ClTjCCru62v5F7jM3NjVWMtnOA",
@@ -331,6 +334,7 @@ const fbApp = initializeApp({
 });
 const fbAuth = getAuth(fbApp);
 const fbDb   = getFirestore(fbApp);
+enableIndexedDbPersistence(fbDb).catch(function(){});
 
 // ── STATE ──────────────────────────────────────
 var state = { dump: [], week: [], today: [], now: [] };
@@ -372,7 +376,7 @@ function startSync(uid) {
     render();
     setSyncStatus('synced', '&#10003; Synchronisiert');
   }, function() {
-    setSyncStatus('error', '&#9888; Offline');
+    setSyncStatus('', '&#128204; Kein Internet &mdash; Daten zuletzt gespeichert');
   });
 }
 
