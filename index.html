@@ -322,7 +322,7 @@ body.focus-mode .mobile-tabs { display: none !important; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, onSnapshot, setDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const fbApp = initializeApp({
   apiKey: "AIzaSyAfQOuV7ClTjCCru62v5F7jM3NjVWMtnOA",
@@ -334,7 +334,6 @@ const fbApp = initializeApp({
 });
 const fbAuth = getAuth(fbApp);
 const fbDb   = getFirestore(fbApp);
-enableIndexedDbPersistence(fbDb).catch(function(){});
 
 // ── STATE ──────────────────────────────────────
 var state = { dump: [], week: [], today: [], now: [] };
@@ -375,8 +374,13 @@ function startSync(uid) {
     checkDayRollover();
     render();
     setSyncStatus('synced', '&#10003; Synchronisiert');
-  }, function() {
-    setSyncStatus('', '&#128204; Kein Internet &mdash; Daten zuletzt gespeichert');
+  }, function(err) {
+    if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
+      setSyncStatus('', '&#128274; Sitzung abgelaufen');
+      document.getElementById('loginOverlay').style.display = 'flex';
+    } else {
+      setSyncStatus('', '&#128204; Kein Internet &mdash; Daten zuletzt gespeichert');
+    }
   });
 }
 
@@ -390,12 +394,17 @@ function setSyncStatus(cls, msg) {
 onAuthStateChanged(fbAuth, function(user) {
   if (user) {
     document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('loginBtn').textContent = 'Mit Google anmelden';
+    document.getElementById('loginBtn').disabled = false;
     startSync(user.uid);
   } else {
     document.getElementById('loginOverlay').style.display = 'flex';
-    if (unsubFirestore) unsubFirestore();
+    if (unsubFirestore) { unsubFirestore(); unsubFirestore = null; }
     currentUid = null;
+    setSyncStatus('', '&#128274; Nicht angemeldet');
   }
+}, function(err) {
+  document.getElementById('loginOverlay').style.display = 'flex';
 });
 
 document.getElementById('loginBtn').addEventListener('click', async function() {
