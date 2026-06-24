@@ -375,12 +375,7 @@ function startSync(uid) {
     render();
     setSyncStatus('synced', '&#10003; Synchronisiert');
   }, function(err) {
-    if (err.code === 'permission-denied' || err.code === 'unauthenticated') {
-      setSyncStatus('', '&#128274; Sitzung abgelaufen');
-      document.getElementById('loginOverlay').style.display = 'flex';
-    } else {
-      setSyncStatus('', '&#128204; Kein Internet &mdash; Daten zuletzt gespeichert');
-    }
+    setSyncStatus('', '&#128204; Verbindungsfehler &mdash; bitte Seite neu laden');
   });
 }
 
