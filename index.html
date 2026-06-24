@@ -321,7 +321,7 @@ body.focus-mode .mobile-tabs { display: none !important; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const fbApp = initializeApp({
@@ -407,17 +407,26 @@ onAuthStateChanged(fbAuth, function(user) {
   document.getElementById('loginOverlay').style.display = 'flex';
 });
 
+// Redirect-Ergebnis nach Rückkehr von Google abfangen
+getRedirectResult(fbAuth).catch(function() {});
+
 document.getElementById('loginBtn').addEventListener('click', async function() {
   var btn = document.getElementById('loginBtn');
   var err = document.getElementById('loginError');
-  btn.textContent = 'Wird verbunden...';
+  btn.textContent = 'Weiterleitung zu Google...';
   btn.disabled = true;
   err.textContent = '';
+  var provider = new GoogleAuthProvider();
   try {
-    await signInWithPopup(fbAuth, new GoogleAuthProvider());
+    // Popup für Desktop, Redirect für Mobile
+    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      await signInWithRedirect(fbAuth, provider);
+    } else {
+      await signInWithPopup(fbAuth, provider);
+    }
   } catch(e) {
-    err.textContent = 'Anmeldung fehlgeschlagen – Popup erlaubt?';
-    btn.innerHTML = 'Nochmal versuchen';
+    err.textContent = 'Anmeldung fehlgeschlagen – bitte nochmal versuchen.';
+    btn.textContent = 'Mit Google anmelden';
     btn.disabled = false;
   }
 });
