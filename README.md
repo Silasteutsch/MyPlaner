@@ -5,7 +5,7 @@ Ein fokussierter Tagesplaner nach dem Prinzip *"3 Dinge. 1 Tag. Kein Stress."* â
 ## Screenshot
 
 <!-- Screenshot: Gesamtansicht mit den vier Spalten -->
-![Planer-Ansicht](./screenshots/planer.png)
+![Planer-Ansicht]()
 *Brain Dump, Diese Woche, Heute und Jetzt als vier klar getrennte Zeithorizonte.*
 
 ## Idee dahinter
