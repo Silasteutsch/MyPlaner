@@ -511,21 +511,42 @@ document.getElementById('todayDateDisplay').textContent =
 function checkDayRollover() {
   var lastDate = localStorage.getItem('myplaner_lastdate');
   var today = new Date().toISOString().slice(0, 10);
+  var rolloverMsgs = [];
+
   if (lastDate && lastDate !== today) {
     var unfinished = state.today.filter(function(i){ return !i.done; });
     if (unfinished.length) {
       state.today = unfinished.map(function(i){
         return Object.assign({}, i, { carriedOver: true, done: false });
       });
-      scheduleSave();
-      showToast(unfinished.length + ' Aufgabe(n) von gestern mitgenommen');
+      rolloverMsgs.push(unfinished.length + ' von gestern mitgenommen');
     } else {
       state.today = [];
-      scheduleSave();
     }
     state.goals = ['', '', ''];
-    scheduleSave();
   }
+
+  // Auto-move: Tasks aus Dump & Woche mit deadline === heute → Heute (immer prüfen)
+  var moved = 0;
+  ['dump', 'week'].forEach(function(list) {
+    var keep = [];
+    state[list].forEach(function(item) {
+      if (!item.done && item.deadline === today) {
+        state.today.unshift(Object.assign({}, item, { deadline: null }));
+        moved++;
+      } else {
+        keep.push(item);
+      }
+    });
+    state[list] = keep;
+  });
+  if (moved) rolloverMsgs.push(moved + ' Aufgabe(n) automatisch auf Heute');
+
+  if (rolloverMsgs.length) {
+    scheduleSave();
+    showToast(rolloverMsgs.join(' · '));
+  }
+
   localStorage.setItem('myplaner_lastdate', today);
 }
 
