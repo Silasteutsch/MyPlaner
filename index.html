@@ -950,25 +950,25 @@ function renderToday() {
     el.innerHTML = '<div class="empty">Pull from Week<br>or add directly</div>';
   }
 
-  // Von gestern
-  if (carried.length) {
-    var cl = document.createElement('div'); cl.className = 'section-label carryover-label';
-    cl.innerHTML = '&#8635; FROM YESTERDAY'; el.appendChild(cl);
-    carried.forEach(function(item){
-      el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[
+  // New today — always first
+  if (active.length) {
+    if (carried.length) {
+      var nl = document.createElement('div'); nl.className = 'section-label'; nl.textContent = 'TODAY'; el.appendChild(nl);
+    }
+    active.forEach(function(item, idx){
+      el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1, moves:[
         {label:'&#9679; Now', to:'now'},
         {label:'&#8592; Week', to:'week'}
       ]}));
     });
   }
 
-  // New today
-  if (active.length) {
-    if (carried.length) {
-      var nl = document.createElement('div'); nl.className = 'section-label'; nl.textContent = 'NEW TODAY'; el.appendChild(nl);
-    }
-    active.forEach(function(item, idx){
-      el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1, moves:[
+  // From yesterday — below new tasks
+  if (carried.length) {
+    var cl = document.createElement('div'); cl.className = 'section-label carryover-label';
+    cl.innerHTML = '&#8635; FROM YESTERDAY'; el.appendChild(cl);
+    carried.forEach(function(item){
+      el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[
         {label:'&#9679; Now', to:'now'},
         {label:'&#8592; Week', to:'week'}
       ]}));
