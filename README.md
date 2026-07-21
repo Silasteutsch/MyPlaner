@@ -1,12 +1,18 @@
-# Mein Planer
+# MyPlaner
 
 Ein fokussierter Tagesplaner nach dem Prinzip *"3 Dinge. 1 Tag. Kein Stress."* — gebaut, um Aufgaben nicht endlos zu sammeln, sondern bewusst zu priorisieren.
 
+**▶ Live-Demo: [silasteutsch.github.io/MyPlaner](https://silasteutsch.github.io/MyPlaner/)**
+
+<!-- TODO Silas: neuen Screenshot aufnehmen, als screenshots/planer.png speichern
+     und dann die folgenden vier Zeilen (bis inkl. Bildunterschrift) aus dem Kommentar nehmen:
+
 ## Screenshot
 
-<!-- Screenshot: Gesamtansicht mit den vier Spalten -->
-![Planer-Ansicht]()
+![Planer-Ansicht](./screenshots/planer.png)
 *Brain Dump, Diese Woche, Heute und Jetzt als vier klar getrennte Zeithorizonte.*
+-->
+
 
 ## Idee dahinter
 
