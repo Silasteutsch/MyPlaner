@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mein Planer</title>
+<title>My Planner</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f0eb; min-height: 100vh; }
@@ -188,12 +188,12 @@ body.focus-mode .mobile-tabs { display: none !important; }
 <!-- LOGIN (nur beim allerersten Mal pro Gerät) -->
 <div id="loginOverlay" style="display:none;position:fixed;inset:0;background:#1a1a2e;z-index:999;align-items:center;justify-content:center;flex-direction:column;">
   <div style="background:#fff;border-radius:16px;padding:40px 32px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.4);">
-    <h1 style="font-size:22px;color:#1a1a2e;letter-spacing:1px;margin-bottom:8px;">MEIN PLANER</h1>
-    <p style="color:#888;font-size:13px;margin-bottom:6px;">Einmal anmelden &mdash; dann nie wieder.</p>
-    <p style="color:#aaa;font-size:12px;margin-bottom:28px;">Deine Daten werden auf allen Ger&auml;ten synchronisiert.</p>
+    <h1 style="font-size:22px;color:#1a1a2e;letter-spacing:1px;margin-bottom:8px;">MY PLANNER</h1>
+    <p style="color:#888;font-size:13px;margin-bottom:6px;">Sign in once &mdash; never again.</p>
+    <p style="color:#aaa;font-size:12px;margin-bottom:28px;">Your data syncs across all your devices.</p>
     <button id="loginBtn" style="display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:14px 20px;border-radius:10px;border:1.5px solid #ddd;background:#fff;font-size:15px;font-family:inherit;cursor:pointer;font-weight:bold;color:#1a1a2e;transition:background 0.15s;">
       <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-      Mit Google anmelden
+      Sign in with Google
     </button>
     <div id="loginError" style="color:#e94560;font-size:12px;margin-top:12px;min-height:16px;"></div>
   </div>
@@ -202,23 +202,23 @@ body.focus-mode .mobile-tabs { display: none !important; }
 <div id="appScreen">
   <div class="header">
     <div class="header-left">
-      <h1>MEIN PLANER</h1>
-      <p id="headerSub">3 Dinge. 1 Tag. Kein Stress.</p>
+      <h1>MY PLANNER</h1>
+      <p id="headerSub">3 Things. 1 Day. No Stress.</p>
     </div>
     <div class="header-right">
-      <button class="header-btn focus-btn" id="focusBtn" onclick="toggleFocus()">&#127919; Fokus</button>
-      <button class="header-btn" id="rulesBtn" onclick="toggleRules()">&#9889; Regeln</button>
+      <button class="header-btn focus-btn" id="focusBtn" onclick="toggleFocus()">&#127919; Focus</button>
+      <button class="header-btn" id="rulesBtn" onclick="toggleRules()">&#9889; Rules</button>
     </div>
   </div>
 
   <div class="rules-dropdown" id="rulesDropdown">
-    <div class="rule-item"><span class="rule-icon">&#9889;</span><div><div class="rule-label">Deadline heute/morgen?</div><div class="rule-desc">&#8594; Sofort auf die 3</div></div></div>
-    <div class="rule-item"><span class="rule-icon">&#128165;</span><div><div class="rule-label">Schlimmste Konsequenz?</div><div class="rule-desc">&#8594; Kommt als naechstes</div></div></div>
-    <div class="rule-item"><span class="rule-icon">&#128203;</span><div><div class="rule-label">Sonst?</div><div class="rule-desc">&#8594; Bleibt auf der Wochenliste</div></div></div>
+    <div class="rule-item"><span class="rule-icon">&#9889;</span><div><div class="rule-label">Due today/tomorrow?</div><div class="rule-desc">&#8594; Straight into the 3</div></div></div>
+    <div class="rule-item"><span class="rule-icon">&#128165;</span><div><div class="rule-label">Worst consequence?</div><div class="rule-desc">&#8594; Goes next</div></div></div>
+    <div class="rule-item"><span class="rule-icon">&#128203;</span><div><div class="rule-label">Everything else?</div><div class="rule-desc">&#8594; Stays on the week list</div></div></div>
   </div>
 
   <div class="urgent-banner" id="urgentBanner">
-    <div class="urgent-banner-text" id="urgentBannerText">&#128680; Achtung!</div>
+    <div class="urgent-banner-text" id="urgentBannerText">&#128680; Heads up!</div>
     <div class="urgent-items-list" id="urgentChips"></div>
   </div>
 
@@ -231,7 +231,7 @@ body.focus-mode .mobile-tabs { display: none !important; }
   </div>
 
   <div class="goals-strip" id="goalsStrip">
-    <div class="goals-label">&#127919; Meine 3 Ziele heute</div>
+    <div class="goals-label">&#127919; My 3 Goals Today</div>
     <div class="goals-cards">
       <div class="goal-card" data-idx="0"><span class="goal-num">1</span><span class="goal-text" contenteditable="true" data-idx="0"></span></div>
       <div class="goal-card" data-idx="1"><span class="goal-num">2</span><span class="goal-text" contenteditable="true" data-idx="1"></span></div>
@@ -241,9 +241,9 @@ body.focus-mode .mobile-tabs { display: none !important; }
 
   <div class="mobile-tabs" id="mobileTabs">
     <button class="tab active" onclick="switchMobileTab(0)">Dump <span id="mDumpBadge"></span></button>
-    <button class="tab" onclick="switchMobileTab(1)">Woche <span id="mWeekBadge"></span></button>
-    <button class="tab" onclick="switchMobileTab(2)">Heute <span id="mTodayBadge"></span></button>
-    <button class="tab" onclick="switchMobileTab(3)">&#9679; Jetzt</button>
+    <button class="tab" onclick="switchMobileTab(1)">Week <span id="mWeekBadge"></span></button>
+    <button class="tab" onclick="switchMobileTab(2)">Today <span id="mTodayBadge"></span></button>
+    <button class="tab" onclick="switchMobileTab(3)">&#9679; Now</button>
   </div>
 
   <div class="columns">
@@ -255,10 +255,10 @@ body.focus-mode .mobile-tabs { display: none !important; }
         <span class="col-badge neutral" id="dumpBadge" style="display:none"></span>
       </div>
       <div class="col-accent red"></div>
-      <p class="col-hint">Alles raus aus dem Kopf &mdash; ohne bewerten oder sortieren.</p>
+      <p class="col-hint">Everything out of your head &mdash; no sorting, no judging.</p>
       <div class="add-form">
         <div class="add-form-row">
-          <input type="text" id="dumpInput" placeholder="Was geht dir im Kopf rum?" onkeydown="if(event.key==='Enter')addItem('dump')">
+          <input type="text" id="dumpInput" placeholder="What's on your mind?" onkeydown="if(event.key==='Enter')addItem('dump')">
           <button class="add-btn" onclick="addItem('dump')">+</button>
         </div>
         <div class="date-row">
@@ -273,14 +273,14 @@ body.focus-mode .mobile-tabs { display: none !important; }
     <!-- DIESE WOCHE -->
     <div class="column" id="col1">
       <div class="col-header">
-        <span class="col-title">Diese Woche</span>
+        <span class="col-title">This Week</span>
         <span class="col-badge neutral" id="weekBadge" style="display:none"></span>
       </div>
       <div class="col-accent blue"></div>
-      <p class="col-hint">Was ist diese Woche relevant? Max. 10 Punkte.</p>
+      <p class="col-hint">What matters this week? Max 10 items.</p>
       <div class="add-form">
         <div class="add-form-row">
-          <input type="text" id="weekInput" placeholder="Aufgabe diese Woche..." onkeydown="if(event.key==='Enter')addItem('week')">
+          <input type="text" id="weekInput" placeholder="Task for this week..." onkeydown="if(event.key==='Enter')addItem('week')">
           <button class="add-btn" onclick="addItem('week')">+</button>
         </div>
         <div class="date-row">
@@ -295,15 +295,15 @@ body.focus-mode .mobile-tabs { display: none !important; }
     <!-- HEUTE -->
     <div class="column" id="col2">
       <div class="col-header">
-        <span class="col-title">Heute</span>
+        <span class="col-title">Today</span>
         <span class="col-badge" id="todayBadge">0/3</span>
       </div>
       <div class="col-accent green"></div>
-      <p class="col-hint">Maximal 3 Aufgaben. Alles andere existiert heute nicht.</p>
-      <div id="todayFullWarning" class="full-warning" style="display:none">Deine 3 sind gesetzt. Fokus drauf. &#128165;</div>
+      <p class="col-hint">Max 3 tasks. Everything else doesn't exist today.</p>
+      <div id="todayFullWarning" class="full-warning" style="display:none">Your 3 are set. Stay focused. &#128165;</div>
       <div class="add-form" id="todayAddRow">
         <div class="add-form-row">
-          <input type="text" id="todayInput" placeholder="Aufgabe fuer heute..." onkeydown="if(event.key==='Enter')addItem('today')">
+          <input type="text" id="todayInput" placeholder="Task for today..." onkeydown="if(event.key==='Enter')addItem('today')">
           <button class="add-btn" onclick="addItem('today')">+</button>
         </div>
         <div class="date-row">
@@ -315,21 +315,21 @@ body.focus-mode .mobile-tabs { display: none !important; }
       <div id="todayList"></div>
       <div id="successBox" style="display:none" class="success">
         <div class="emoji">&#127881;</div>
-        <div class="title">Alle 3 erledigt!</div>
-        <div class="subtitle">Stark. Du hast heute geliefert.</div>
+        <div class="title">All 3 done!</div>
+        <div class="subtitle">You delivered today. Great job.</div>
       </div>
     </div>
 
     <!-- JETZT -->
     <div class="column" id="col3">
       <div class="col-header">
-        <span class="col-title"><span class="now-pulse"></span>Jetzt</span>
+        <span class="col-title"><span class="now-pulse"></span>Now</span>
       </div>
       <div class="col-accent purple"></div>
-      <p class="col-hint">Was machst du in diesem Moment? Klein, konkret, sofort.</p>
+      <p class="col-hint">What are you doing right now? Small, concrete, immediate.</p>
       <div class="add-form">
         <div class="add-form-row">
-          <input type="text" id="nowInput" placeholder="Was tust du gerade?" onkeydown="if(event.key==='Enter')addItem('now')">
+          <input type="text" id="nowInput" placeholder="What are you doing right now?" onkeydown="if(event.key==='Enter')addItem('now')">
           <button class="add-btn blue" onclick="addItem('now')">+</button>
         </div>
       </div>
@@ -366,7 +366,7 @@ var currentUid = null;
 
 // ── SYNC ───────────────────────────────────────
 function scheduleSave() {
-  setSyncStatus('syncing', '&#8635; Speichert...');
+  setSyncStatus('syncing', '&#8635; Saving...');
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(function() {
     if (!currentUid) return;
@@ -374,16 +374,16 @@ function scheduleSave() {
       dump: state.dump, week: state.week, today: state.today, now: state.now, goals: state.goals,
       updated: new Date().toISOString()
     }).then(function() {
-      setSyncStatus('synced', '&#10003; Synchronisiert');
+      setSyncStatus('synced', '&#10003; Synced');
     }).catch(function() {
-      setSyncStatus('error', '&#9888; Sync-Fehler');
+      setSyncStatus('error', '&#9888; Sync error');
     });
   }, 800);
 }
 
 function startSync(uid) {
   currentUid = uid;
-  setSyncStatus('syncing', '&#8635; Verbinde...');
+  setSyncStatus('syncing', '&#8635; Connecting...');
   if (unsubFirestore) unsubFirestore();
   unsubFirestore = onSnapshot(doc(fbDb, 'users', uid), function(snap) {
     if (snap.exists()) {
@@ -392,14 +392,16 @@ function startSync(uid) {
       state.week  = d.week  || [];
       state.today = d.today || [];
       state.now   = d.now   || [];
-      state.goals = d.goals || ['', '', ''];
+      // Only update goals from Firestore if no local save is pending
+      // (prevents a remote update from overwriting goals the user just typed)
+      if (!saveTimer) state.goals = d.goals || ['', '', ''];
     }
     checkDayRollover();
     render();
     renderGoals();
-    setSyncStatus('synced', '&#10003; Synchronisiert');
+    setSyncStatus('synced', '&#10003; Synced');
   }, function(err) {
-    setSyncStatus('', '&#128204; Verbindungsfehler &mdash; bitte Seite neu laden');
+    setSyncStatus('', '&#128204; Connection error &mdash; please reload the page');
   });
 }
 
@@ -413,14 +415,14 @@ function setSyncStatus(cls, msg) {
 onAuthStateChanged(fbAuth, function(user) {
   if (user) {
     document.getElementById('loginOverlay').style.display = 'none';
-    document.getElementById('loginBtn').textContent = 'Mit Google anmelden';
+    document.getElementById('loginBtn').textContent = 'Sign in with Google';
     document.getElementById('loginBtn').disabled = false;
     startSync(user.uid);
   } else {
     document.getElementById('loginOverlay').style.display = 'flex';
     if (unsubFirestore) { unsubFirestore(); unsubFirestore = null; }
     currentUid = null;
-    setSyncStatus('', '&#128274; Nicht angemeldet');
+    setSyncStatus('', '&#128274; Not signed in');
   }
 }, function(err) {
   document.getElementById('loginOverlay').style.display = 'flex';
@@ -432,20 +434,19 @@ getRedirectResult(fbAuth).catch(function() {});
 document.getElementById('loginBtn').addEventListener('click', async function() {
   var btn = document.getElementById('loginBtn');
   var err = document.getElementById('loginError');
-  btn.textContent = 'Weiterleitung zu Google...';
+  btn.textContent = 'Redirecting to Google...';
   btn.disabled = true;
   err.textContent = '';
   var provider = new GoogleAuthProvider();
   try {
-    // Popup für Desktop, Redirect für Mobile
     if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
       await signInWithRedirect(fbAuth, provider);
     } else {
       await signInWithPopup(fbAuth, provider);
     }
   } catch(e) {
-    err.textContent = 'Anmeldung fehlgeschlagen – bitte nochmal versuchen.';
-    btn.textContent = 'Mit Google anmelden';
+    err.textContent = 'Sign-in failed – please try again.';
+    btn.textContent = 'Sign in with Google';
     btn.disabled = false;
   }
 });
@@ -505,7 +506,7 @@ initQuickDates();
 setupDropZones();
 render();
 document.getElementById('todayDateDisplay').textContent =
-  new Date().toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+  new Date().toLocaleDateString('en-US', {weekday:'long', day:'numeric', month:'long'});
 
 // ── DAY ROLLOVER ───────────────────────────────
 function checkDayRollover() {
@@ -519,7 +520,7 @@ function checkDayRollover() {
       state.today = unfinished.map(function(i){
         return Object.assign({}, i, { carriedOver: true, done: false });
       });
-      rolloverMsgs.push(unfinished.length + ' von gestern mitgenommen');
+      rolloverMsgs.push(unfinished.length + ' carried over from yesterday');
     } else {
       state.today = [];
     }
@@ -540,7 +541,7 @@ function checkDayRollover() {
     });
     state[list] = keep;
   });
-  if (moved) rolloverMsgs.push(moved + ' Aufgabe(n) automatisch auf Heute');
+  if (moved) rolloverMsgs.push(moved + ' task(s) automatically moved to Today');
 
   if (rolloverMsgs.length) {
     scheduleSave();
@@ -556,8 +557,8 @@ window.toggleFocus = function() {
   document.body.classList.toggle('focus-mode', focusMode);
   var btn = document.getElementById('focusBtn');
   btn.classList.toggle('focus-on', focusMode);
-  btn.innerHTML = focusMode ? '&#127919; Fokus AN' : '&#127919; Fokus';
-  if (focusMode) showToast('Fokus-Modus: Nur Heute & Jetzt');
+  btn.innerHTML = focusMode ? '&#127919; Focus ON' : '&#127919; Focus';
+  if (focusMode) showToast('Focus mode: Today & Now only');
 };
 
 // ── TABS ───────────────────────────────────────
@@ -576,7 +577,7 @@ function initQuickDates() {
   ['dump', 'week', 'today'].forEach(function(list) {
     var container = document.getElementById(list + 'QuickDates');
     var dateInput = document.getElementById(list + 'Date');
-    [{ label: 'Heute', days: 0 }, { label: 'Morgen', days: 1 }, { label: '+3 Tage', days: 3 }, { label: '+1 Woche', days: 7 }].forEach(function(b) {
+    [{ label: 'Today', days: 0 }, { label: 'Tomorrow', days: 1 }, { label: '+3 days', days: 3 }, { label: '+1 week', days: 7 }].forEach(function(b) {
       var btn = document.createElement('button');
       btn.className = 'qd-btn';
       btn.textContent = b.label;
@@ -612,9 +613,9 @@ window.addItem = function(list) {
   if (!text) return;
   if (list === 'today') {
     var newCount = state.today.filter(function(i){ return !i.done && !i.carriedOver; }).length;
-    if (newCount >= 3) showToast('Schon ' + newCount + ' neue Aufgaben heute – bewusst priorisieren!');
+    if (newCount >= 3) showToast('Already ' + newCount + ' tasks today – prioritize consciously!');
   }
-  if (list === 'week' && state.week.length >= 10) { showToast('Max. 10 Aufgaben diese Woche!'); return; }
+  if (list === 'week' && state.week.length >= 10) { showToast('Max 10 tasks this week!'); return; }
   var dateEl = dateIds[list] ? document.getElementById(dateIds[list]) : null;
   var deadline = dateEl ? dateEl.value : '';
   state[list].unshift({ id: Date.now(), text: text, done: false, deadline: deadline });
@@ -646,21 +647,21 @@ window.moveItem = function(from, to, id) {
   if (!item) return;
   if (to==='today') {
     var nc = state.today.filter(function(i){ return !i.done && !i.carriedOver; }).length;
-    if (nc >= 3) showToast('Schon ' + nc + ' neue Aufgaben heute – sicher?');
+    if (nc >= 3) showToast('Already ' + nc + ' new tasks today – are you sure?');
   }
   state[from] = state[from].filter(function(i){ return i.id!==id; });
   state[to].push(Object.assign({}, item, {done:false}));
   scheduleSave(); render();
-  showToast('Aufgabe verschoben');
+  showToast('Task moved');
 };
 
 var LABELS = [
   { id: 'quick',    icon: '⚡', text: '5 Min',       bg: '#fff3cd', color: '#856404' },
   { id: 'low',      icon: '🌿', text: 'Low Energy',  bg: '#d4edda', color: '#155724' },
   { id: 'high',     icon: '🔥', text: 'High Energy', bg: '#fde8e8', color: '#c0392b' },
-  { id: 'long',     icon: '⏳', text: 'Länger',      bg: '#d6eaf8', color: '#1a5276' },
-  { id: 'dopamine', icon: '🍭', text: 'Dopamin',     bg: '#ead6f8', color: '#6c3483' },
-  { id: 'annoying', icon: '😤', text: 'Nervig',      bg: '#e8e8e8', color: '#555' },
+  { id: 'long',     icon: '⏳', text: 'Longer',      bg: '#d6eaf8', color: '#1a5276' },
+  { id: 'dopamine', icon: '🍭', text: 'Dopamine',   bg: '#ead6f8', color: '#6c3483' },
+  { id: 'annoying', icon: '😤', text: 'Annoying',   bg: '#e8e8e8', color: '#555' },
 ];
 
 window.updateItemLabel = function(list, id, labelId) {
@@ -716,11 +717,11 @@ function deadlineClass(diff) {
 
 function deadlineText(deadline, diff) {
   var dl = new Date(deadline + 'T00:00:00');
-  var fmt = dl.toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'});
-  if (diff < 0)  return '&#128680; Ueberfaellig: ' + fmt;
-  if (diff === 0) return '&#9889; Heute faellig!';
-  if (diff === 1) return '&#9888;&#65039; Morgen: ' + fmt;
-  return '&#128197; ' + fmt + ' (' + diff + ' Tage)';
+  var fmt = dl.toLocaleDateString('en-US', {day:'2-digit',month:'2-digit',year:'numeric'});
+  if (diff < 0)  return '&#128680; Overdue: ' + fmt;
+  if (diff === 0) return '&#9889; Due today!';
+  if (diff === 1) return '&#9888;&#65039; Tomorrow: ' + fmt;
+  return '&#128197; ' + fmt + ' (' + diff + ' days)';
 }
 
 // ── RENDER ITEM ────────────────────────────────
@@ -897,28 +898,28 @@ function makeItem(opts) {
 // ── RENDER ─────────────────────────────────────
 function renderDump() {
   var el = document.getElementById('dumpList'); el.innerHTML = '';
-  if (!state.dump.length) { el.innerHTML = '<div class="empty">Noch leer<br>Fang einfach an &#9999;</div>'; return; }
+  if (!state.dump.length) { el.innerHTML = '<div class="empty">Still empty<br>Just start &#9999;</div>'; return; }
   state.dump.forEach(function(item){
     el.appendChild(makeItem({item:item, list:'dump', moves:[
-      {label:'&#8594; Woche', to:'week'},
-      {label:'&#9679; Jetzt', to:'now'}
+      {label:'&#8594; Week', to:'week'},
+      {label:'&#9679; Now', to:'now'}
     ]}));
   });
 }
 
 function renderWeek() {
   var el = document.getElementById('weekList'); el.innerHTML = '';
-  if (!state.week.length) { el.innerHTML = '<div class="empty">Aus dem Dump rueberziehen</div>'; return; }
+  if (!state.week.length) { el.innerHTML = '<div class="empty">Pull from Dump</div>'; return; }
   var ta = state.today.filter(function(i){ return !i.done && !i.carriedOver; }).length;
   state.week.forEach(function(item){
     el.appendChild(makeItem({item:item, list:'week', moves:[
-      {label: ta<3 ? '&#8594; Heute' : null, to: 'today'},
-      {label:'&#9679; Jetzt', to:'now'},
+      {label: ta<3 ? '&#8594; Today' : null, to: 'today'},
+      {label:'&#9679; Now', to:'now'},
       {label: '&#8592; Dump', to: 'dump'}
     ]}));
   });
   if (state.week.length >= 10) {
-    var w=document.createElement('div'); w.className='limit-warn'; w.textContent='10 Punkte erreicht. Erstmal abhaken!'; el.appendChild(w);
+    var w=document.createElement('div'); w.className='limit-warn'; w.textContent='10 reached. Check some off first!'; el.appendChild(w);
   }
 }
 
@@ -933,11 +934,11 @@ function renderToday() {
   document.getElementById('todayAddRow').style.display = 'flex';
   if (active.length >= 5) {
     warn.style.display = 'block';
-    warn.innerHTML = '&#128683; 5+ Aufgaben heute &mdash; wirklich alle noetig?';
+    warn.innerHTML = '&#128683; 5+ tasks today &mdash; do you really need all of them?';
     warn.style.background = '#fff0f2';
   } else if (active.length >= 3) {
     warn.style.display = 'block';
-    warn.innerHTML = '&#9888;&#65039; ' + active.length + ' neue Aufgaben &mdash; fokussiert bleiben!';
+    warn.innerHTML = '&#9888;&#65039; ' + active.length + ' new tasks &mdash; stay focused!';
     warn.style.background = '#fffbea';
     warn.style.borderColor = '#f0a500';
     warn.style.color = '#856404';
@@ -946,36 +947,36 @@ function renderToday() {
   }
 
   if (!state.today.length) {
-    el.innerHTML = '<div class="empty">Aus Woche rueberziehen<br>oder direkt hinzufuegen</div>';
+    el.innerHTML = '<div class="empty">Pull from Week<br>or add directly</div>';
   }
 
   // Von gestern
   if (carried.length) {
     var cl = document.createElement('div'); cl.className = 'section-label carryover-label';
-    cl.innerHTML = '&#8635; VON GESTERN'; el.appendChild(cl);
+    cl.innerHTML = '&#8635; FROM YESTERDAY'; el.appendChild(cl);
     carried.forEach(function(item){
       el.appendChild(makeItem({item:item, list:'today', showCheck:true, moves:[
-        {label:'&#9679; Jetzt', to:'now'},
-        {label:'&#8592; Woche', to:'week'}
+        {label:'&#9679; Now', to:'now'},
+        {label:'&#8592; Week', to:'week'}
       ]}));
     });
   }
 
-  // Heute neue
+  // New today
   if (active.length) {
     if (carried.length) {
-      var nl = document.createElement('div'); nl.className = 'section-label'; nl.textContent = 'HEUTE NEU'; el.appendChild(nl);
+      var nl = document.createElement('div'); nl.className = 'section-label'; nl.textContent = 'NEW TODAY'; el.appendChild(nl);
     }
     active.forEach(function(item, idx){
       el.appendChild(makeItem({item:item, list:'today', showCheck:true, showBadge:true, badgeNum:idx+1, moves:[
-        {label:'&#9679; Jetzt', to:'now'},
-        {label:'&#8592; Woche', to:'week'}
+        {label:'&#9679; Now', to:'now'},
+        {label:'&#8592; Week', to:'week'}
       ]}));
     });
   }
 
   if (done.length) {
-    var dl = document.createElement('div'); dl.className = 'section-label'; dl.textContent = 'ERLEDIGT'; el.appendChild(dl);
+    var dl = document.createElement('div'); dl.className = 'section-label'; dl.textContent = 'DONE'; el.appendChild(dl);
     done.forEach(function(item){ el.appendChild(makeItem({item:item, list:'today', showCheck:true})); });
   }
 
@@ -988,15 +989,15 @@ function renderNow() {
   var el = document.getElementById('nowList'); el.innerHTML = '';
   var active = state.now.filter(function(i){ return !i.done; });
   var done   = state.now.filter(function(i){ return i.done; });
-  if (!state.now.length) { el.innerHTML = '<div class="empty">Was willst du<br>jetzt gerade tun? &#9889;</div>'; return; }
+  if (!state.now.length) { el.innerHTML = '<div class="empty">What do you want<br>to do right now? &#9889;</div>'; return; }
   active.forEach(function(item){
     el.appendChild(makeItem({item:item, list:'now', showCheck:true, moves:[
-      {label:'&#8592; Heute', to:'today'},
-      {label:'&#8592; Woche', to:'week'}
+      {label:'&#8592; Today', to:'today'},
+      {label:'&#8592; Week', to:'week'}
     ]}));
   });
   if (done.length) {
-    var lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent='ERLEDIGT'; el.appendChild(lbl);
+    var lbl=document.createElement('div'); lbl.className='section-label'; lbl.textContent='DONE'; el.appendChild(lbl);
     done.forEach(function(item){ el.appendChild(makeItem({item:item, list:'now', showCheck:true})); });
   }
 }
@@ -1029,9 +1030,9 @@ function renderUrgentBanner() {
   var overdue = urgent.filter(function(u){ return u.diff < 0; });
   var today2  = urgent.filter(function(u){ return u.diff === 0; });
   var txt = [];
-  if (overdue.length) txt.push(overdue.length + ' ueberfaellig');
-  if (today2.length)  txt.push(today2.length  + ' heute faellig');
-  document.getElementById('urgentBannerText').innerHTML = '&#128680; ' + txt.join(', ') + ' &mdash; jetzt nach Heute ziehen:';
+  if (overdue.length) txt.push(overdue.length + ' overdue');
+  if (today2.length)  txt.push(today2.length  + ' due today');
+  document.getElementById('urgentBannerText').innerHTML = '&#128680; ' + txt.join(', ') + ' &mdash; move to Today now:';
   chips.innerHTML = '';
   urgent.slice(0,5).forEach(function(u) {
     var chip = document.createElement('button');
@@ -1063,7 +1064,7 @@ function render() {
 
 // ── GOALS ──────────────────────────────────────
 function renderGoals() {
-  var placeholders = ['Ziel 1 eingeben...', 'Ziel 2 eingeben...', 'Ziel 3 eingeben...'];
+  var placeholders = ['Enter goal 1...', 'Enter goal 2...', 'Enter goal 3...'];
   document.querySelectorAll('.goal-text').forEach(function(el) {
     var idx = parseInt(el.getAttribute('data-idx'));
     var val = (state.goals && state.goals[idx]) || '';
