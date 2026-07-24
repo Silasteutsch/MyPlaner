@@ -4,14 +4,10 @@ Ein fokussierter Tagesplaner nach dem Prinzip *"3 Dinge. 1 Tag. Kein Stress."* â
 
 **â–¶ Live-Demo: [silasteutsch.github.io/MyPlaner](https://silasteutsch.github.io/MyPlaner/)**
 
-<!-- TODO Silas: neuen Screenshot aufnehmen, als screenshots/planer.png speichern
-     und dann die folgenden vier Zeilen (bis inkl. Bildunterschrift) aus dem Kommentar nehmen:
-
 ## Screenshot
 
 ![Planer-Ansicht](./screenshots/planer.png)
-*Brain Dump, Diese Woche, Heute und Jetzt als vier klar getrennte Zeithorizonte.*
--->
+*Brain Dump, This Week, Today und Now als vier klar getrennte Zeithorizonte.*
 
 
 ## Idee dahinter
