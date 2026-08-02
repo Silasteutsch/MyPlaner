@@ -445,7 +445,10 @@ document.getElementById('loginBtn').addEventListener('click', async function() {
   err.textContent = '';
   var provider = new GoogleAuthProvider();
   try {
-    if (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    // PWA standalone mode: popup stays in same context, redirect would open browser and lose auth
+    var isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    var isMobileBrowser = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) && !isPWA;
+    if (isMobileBrowser) {
       await signInWithRedirect(fbAuth, provider);
     } else {
       await signInWithPopup(fbAuth, provider);
