@@ -165,19 +165,25 @@ body.focus-mode .mobile-tabs { display: none !important; }
 @keyframes fadeInUp { from{opacity:0;transform:translateX(-50%) translateY(8px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
 
 /* GOALS STRIP */
-.goals-strip { background: linear-gradient(135deg, #1a1a2e, #2d2d4e); padding: 12px 24px; display: flex; align-items: center; gap: 16px; }
-.goals-label { color: #f0a500; font-size: 12px; font-weight: bold; letter-spacing: 1px; white-space: nowrap; }
-.goals-cards { display: flex; gap: 10px; flex: 1; }
-.goal-card { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 14px; flex: 1; display: flex; align-items: center; gap: 10px; transition: border-color 0.15s; }
+.goals-strip { background: linear-gradient(135deg, #1a1a2e, #2d2d4e); padding: 6px 24px; display: flex; align-items: center; gap: 12px; }
+.goals-label { color: #f0a500; font-size: 11px; font-weight: bold; letter-spacing: 1px; white-space: nowrap; }
+.goals-cards { display: flex; gap: 8px; flex: 1; }
+.goal-card { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 5px 10px; flex: 1; display: flex; align-items: center; gap: 8px; transition: border-color 0.15s; min-width: 0; }
 .goal-card:hover { border-color: rgba(240,165,0,0.5); }
-.goal-card.filled { border-color: rgba(240,165,0,0.4); background: rgba(240,165,0,0.08); }
-.goal-num { color: #f0a500; font-size: 20px; font-weight: bold; line-height: 1; flex-shrink: 0; }
-.goal-text { color: #fff; font-size: 13px; outline: none; flex: 1; min-width: 0; cursor: text; }
-.goal-text:empty:before { content: attr(data-placeholder); color: rgba(255,255,255,0.25); pointer-events: none; }
+.goal-card.filled { border-color: rgba(240,165,0,0.35); background: rgba(240,165,0,0.07); }
+.goal-card.done { opacity: 0.45; }
+.goal-check { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.3); background: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; padding: 0; }
+.goal-check:hover { border-color: #f0a500; }
+.goal-check.checked { background: #4caf50; border-color: #4caf50; }
+.goal-check.checked::after { content: '✓'; color: #fff; font-size: 10px; line-height: 1; }
+.goal-text { color: #fff; font-size: 12px; outline: none; flex: 1; min-width: 0; cursor: text; }
+.goal-card.done .goal-text { text-decoration: line-through; color: rgba(255,255,255,0.4); }
+.goal-text:empty:before { content: attr(data-placeholder); color: rgba(255,255,255,0.2); pointer-events: none; }
 
 /* RESPONSIVE */
 @media (max-width: 900px) {
-  .goals-strip { flex-direction: column; gap: 8px; padding: 12px 16px; }
+  .goals-strip { gap: 8px; padding: 5px 12px; }
+  .goals-label { display: none; }
   .columns { display: block; padding: 0; }
   .column { display: none; border-radius: 0; min-height: calc(100vh - 180px); padding: 16px; }
   .column.active { display: flex; }
@@ -237,11 +243,11 @@ body.focus-mode .mobile-tabs { display: none !important; }
   </div>
 
   <div class="goals-strip" id="goalsStrip">
-    <div class="goals-label">&#127919; My 3 Goals Today</div>
+    <div class="goals-label">&#127919; Goals</div>
     <div class="goals-cards">
-      <div class="goal-card" data-idx="0"><span class="goal-num">1</span><span class="goal-text" contenteditable="true" data-idx="0"></span></div>
-      <div class="goal-card" data-idx="1"><span class="goal-num">2</span><span class="goal-text" contenteditable="true" data-idx="1"></span></div>
-      <div class="goal-card" data-idx="2"><span class="goal-num">3</span><span class="goal-text" contenteditable="true" data-idx="2"></span></div>
+      <div class="goal-card" data-idx="0"><button class="goal-check" data-idx="0"></button><span class="goal-text" contenteditable="true" data-idx="0"></span></div>
+      <div class="goal-card" data-idx="1"><button class="goal-check" data-idx="1"></button><span class="goal-text" contenteditable="true" data-idx="1"></span></div>
+      <div class="goal-card" data-idx="2"><button class="goal-check" data-idx="2"></button><span class="goal-text" contenteditable="true" data-idx="2"></span></div>
     </div>
   </div>
 
@@ -364,7 +370,7 @@ const fbAuth = getAuth(fbApp);
 const fbDb   = getFirestore(fbApp);
 
 // ── STATE ──────────────────────────────────────
-var state = { dump: [], week: [], today: [], now: [], goals: ['', '', ''] };
+var state = { dump: [], week: [], today: [], now: [], goals: ['', '', ''], goalsDone: [false, false, false] };
 var focusMode = false;
 var saveTimer = null;
 var unsubFirestore = null;
@@ -377,7 +383,7 @@ function scheduleSave() {
   saveTimer = setTimeout(function() {
     if (!currentUid) return;
     setDoc(doc(fbDb, 'users', currentUid), {
-      dump: state.dump, week: state.week, today: state.today, now: state.now, goals: state.goals,
+      dump: state.dump, week: state.week, today: state.today, now: state.now, goals: state.goals, goalsDone: state.goalsDone,
       updated: new Date().toISOString()
     }).then(function() {
       setSyncStatus('synced', '&#10003; Synced');
@@ -400,7 +406,10 @@ function startSync(uid) {
       state.now   = d.now   || [];
       // Only update goals from Firestore if no local save is pending
       // (prevents a remote update from overwriting goals the user just typed)
-      if (!saveTimer) state.goals = d.goals || ['', '', ''];
+      if (!saveTimer) {
+        state.goals = d.goals || ['', '', ''];
+        state.goalsDone = d.goalsDone || [false, false, false];
+      }
     }
     checkDayRollover();
     render();
@@ -534,6 +543,7 @@ function checkDayRollover() {
       state.today = [];
     }
     state.goals = ['', '', ''];
+    state.goalsDone = [false, false, false];
   }
 
   // Auto-move: Tasks aus Dump & Woche mit deadline === heute → Heute (immer prüfen)
@@ -1074,12 +1084,18 @@ function render() {
 // ── GOALS ──────────────────────────────────────
 function renderGoals() {
   var placeholders = ['Enter goal 1...', 'Enter goal 2...', 'Enter goal 3...'];
-  document.querySelectorAll('.goal-text').forEach(function(el) {
-    var idx = parseInt(el.getAttribute('data-idx'));
+  if (!state.goalsDone) state.goalsDone = [false, false, false];
+  document.querySelectorAll('.goal-card').forEach(function(card) {
+    var idx = parseInt(card.getAttribute('data-idx'));
     var val = (state.goals && state.goals[idx]) || '';
-    if (document.activeElement !== el) el.textContent = val;
-    el.setAttribute('data-placeholder', placeholders[idx]);
-    el.closest('.goal-card').classList.toggle('filled', val.trim().length > 0);
+    var done = state.goalsDone[idx] || false;
+    var textEl = card.querySelector('.goal-text');
+    var checkEl = card.querySelector('.goal-check');
+    if (document.activeElement !== textEl) textEl.textContent = val;
+    textEl.setAttribute('data-placeholder', placeholders[idx]);
+    card.classList.toggle('filled', val.trim().length > 0);
+    card.classList.toggle('done', done);
+    checkEl.classList.toggle('checked', done);
   });
 }
 
@@ -1095,6 +1111,15 @@ function renderGoals() {
     });
     el.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+    });
+  });
+  document.querySelectorAll('.goal-check').forEach(function(btn) {
+    var idx = parseInt(btn.getAttribute('data-idx'));
+    btn.addEventListener('click', function() {
+      if (!state.goalsDone) state.goalsDone = [false, false, false];
+      state.goalsDone[idx] = !state.goalsDone[idx];
+      scheduleSave();
+      renderGoals();
     });
   });
 })();
